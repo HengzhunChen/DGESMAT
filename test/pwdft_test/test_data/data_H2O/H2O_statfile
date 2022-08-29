@@ -1,0 +1,591 @@
+Time for reading the input file is 0.273672 [s]
+
+*********************************************************************
+Common information 
+*********************************************************************
+
+Super cell                           = 10  10  10
+Grid Wavefunction                    = 30  30  30
+Grid Density                         = 60  60  60
+Mixing dimension                     = 9
+Mixing variable                      = potential
+Mixing type                          = anderson
+Mixing Steplength                    = +8.00000000e-01
+Temperature                          = 300 [K]
+Extra states                         = 0
+Smearing scheme                      = FD
+PW Solver                            = eigs
+XC Type                              = XC_LDA_XC_TETER93
+Pseudo Type                          = HGH
+SCF Outer Tol                        = 1e-06
+SCF Outer MaxIter                    = 30
+SCF Free Energy Per Atom Tol         = +1.00000000e-04
+Eig Min Tolerence                    = +1.00000000e-03
+Eig Tolerence                        = 1e-20
+Eig MaxIter                          = 50
+Eig Tolerance Dyn                    = 0
+Num unused state                     = 0
+EcutWavefunction                     = 40
+Density GridFactor                   = 2
+Use Atom Density                     = 0
+Use VLocal                           = 0
+RestartDensity                       = 0
+RestartWfn                           = 0
+OutputDensity                        = 0
+Number of Extra Electron             = 0
+
+Ion move mode                        = 
+Max steps for ion                    = 0
+MD time step                         = 40
+Ion Temperature                      = 300 [K]
+Thermostat mass                      = 85000
+Langevin damping                     = +1.00000000e-02
+RestartPosition                      = 0
+RestartVelocity                      = 0
+OutputPosition                       = 1
+OutputVelocity                       = 1
+Output XYZ format                    = 1
+Force tol for geoopt                 = +1.00000000e-03
+MD extrapolation type                = linear
+MD extrapolation variable            = density
+MD SCF Phi MaxIter                   = 10
+MD SCF Outer MaxIter                 = 30
+MD SCF Energy Criteria Engage Iter   = 1
+MD SCF Etot diff                     = +1.00000000e-04
+MD SCF Eband diff                    = +1.00000000e-04
+
+
+*********************************************************************
+PWDFT information 
+*********************************************************************
+
+SCF Phi MaxIter                      = 10
+SCF Phi Tol                          = 1e-06
+Hybrid ACE                           = 1
+Hybrid DF                            = 0
+Hybrid DF Type                       = QRCP
+Hybrid DF Kmeans WF Type             = Add
+Hybrid DF Kmeans WF Alpha            = 2
+Hybrid Active Init                   = 0
+Hybrid Mixing Type                   = nested
+Hybrid DF Num Mu                     = 6
+Hybrid DF Num GaussianRandom         = 2
+Hybrid DF Tolerance                  = 1e-20
+EXX div type                         = 1
+OutputWfn                            = 0
+
+NumAtom = 3
+Atom Type and Coordinates (possibly after shifting into unit cell)
+
+Type =  1   Position =  +1.10000000e+00 +1.40000000e+00 +0.00000000e+00   
+Type =  1   Position =  +1.10000000e+00 -1.40000000e+00 +0.00000000e+00   
+Type =  8   Position =  0  0  0   
+
+Generate HGH type pseudopotential as default. 
+Use HGH type pseudopotential
+Znuc 1
+Check for normalization condition for element   1
+Total number of pseudopotentials terms   0
+int rho         = 1.0000000000e+00
+
+Use HGH type pseudopotential
+Znuc 8
+Check for normalization condition for element   8
+Total number of pseudopotentials terms   2
+int rho         = 5.9999999999e+00
+Abs: int p0a^2  = 1.0000000000e+00
+Rel: int p0a^2  = 1.0000000000e+00
+Abs: int p1ka^2  = 1.0000000000e+00
+Rel: int p1ka^2  = 1.0000000000e+00
+
+Computing the local pseudopotential
+Time for local pseudopotential 0.094446 [s] 
+Sum of Pseudocharge                          = 8
+Number of Occupied States                    = 4
+After adjustment, Sum of Pseudocharge        = 8
+Computing the non-local pseudo pseudopotential
+Total number of nonlocal pseudopotential = 1
+Time for nonlocal pseudopotential 0.069188 [s]
+Time for calculating the pseudopotential for the Hamlitonian is 0.206928 [s]
+Generating initial density through linear combination of pseudocharges.
+Initial density. Sum of density       = +1.10780791e+01
+Rescaled density. Sum of density      = 8
+
+*********************************************************************
+Starting regular SCF iteration. 
+*********************************************************************
+
+
+*********************************************************************
+SCF iteration # 1 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+band#  =  1   eigval  =  -1.59410948e-02   resval  =  0   occrate  =  1   
+band#  =  2   eigval  =  +1.72432496e-01   resval  =  0   occrate  =  1   
+band#  =  3   eigval  =  +1.80848104e-01   resval  =  0   occrate  =  1   
+band#  =  4   eigval  =  +1.82348691e-01   resval  =  0   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 1 
+Etot              = -4.86244220e-01 [au]
+Efree             = -4.86244220e-01 [au]
+EfreeHarris       = -5.86619209e+01 [au]
+Ekin              = +1.03937639e+00 [au]
+Ehart             = -9.43484557e+01 [au]
+EVxc              = -1.99154848e+00 [au]
+Exc               = -1.53162902e+00 [au]
+EVdw              = 0 [au]
+Eself             = +9.63339958e+01 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -1.52562061e+00 [au]
+Fermi             = +1.82348691e-01 [au]
+Total charge      = 8 [au]
+HOMO              = +4.96196043e+00 [eV]
+
+norm(out-in)/norm(in) = +6.57224067e+00
+Efree diff per atom   = +1.93918922e+01
+Total time for this SCF iteration = 10.387882 [s] 
+
+
+*********************************************************************
+SCF iteration # 2 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+band#  =  1   eigval  =  -2.92906169e+00   resval  =  0   occrate  =  1   
+band#  =  2   eigval  =  -2.34809599e+00   resval  =  0   occrate  =  1   
+band#  =  3   eigval  =  -2.23735020e+00   resval  =  0   occrate  =  1   
+band#  =  4   eigval  =  -2.20447381e+00   resval  =  0   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 2 
+Etot              = -3.95878318e+01 [au]
+Efree             = -3.95878318e+01 [au]
+EfreeHarris       = -2.09635840e+01 [au]
+Ekin              = -1.94379634e+01 [au]
+Ehart             = -7.44769267e+01 [au]
+EVxc              = -7.15278488e+00 [au]
+Exc               = -5.44558428e+00 [au]
+EVdw              = 0 [au]
+Eself             = +9.63339958e+01 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -2.01498684e+01 [au]
+Fermi             = -2.20447381e+00 [au]
+Total charge      = 8 [au]
+HOMO              = -5.99867855e+01 [eV]
+
+norm(out-in)/norm(in) = +6.96139808e-01
+Efree diff per atom   = +6.20808260e+00
+Total time for this SCF iteration = 9.056053 [s] 
+
+
+*********************************************************************
+SCF iteration # 3 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+band#  =  1   eigval  =  -1.48672164e+00   resval  =  0   occrate  =  1   
+band#  =  2   eigval  =  -9.84503948e-01   resval  =  0   occrate  =  1   
+band#  =  3   eigval  =  -8.16520048e-01   resval  =  0   occrate  =  1   
+band#  =  4   eigval  =  -7.49698540e-01   resval  =  0   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 3 
+Etot              = -2.26957170e+01 [au]
+Efree             = -2.26957170e+01 [au]
+EfreeHarris       = -2.82247568e+01 [au]
+Ekin              = -8.07488835e+00 [au]
+Ehart             = -8.03452280e+01 [au]
+EVxc              = -5.76123893e+00 [au]
+Exc               = -4.39329984e+00 [au]
+EVdw              = 0 [au]
+Eself             = +9.63339958e+01 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -1.46208287e+01 [au]
+Fermi             = -7.49698540e-01 [au]
+Total charge      = 8 [au]
+HOMO              = -2.04003356e+01 [eV]
+
+norm(out-in)/norm(in) = +3.46295869e-01
+Efree diff per atom   = +1.84301326e+00
+Total time for this SCF iteration = 9.133241 [s] 
+
+
+*********************************************************************
+SCF iteration # 4 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+band#  =  1   eigval  =  -1.08043403e+00   resval  =  0   occrate  =  1   
+band#  =  2   eigval  =  -6.14579560e-01   resval  =  0   occrate  =  1   
+band#  =  3   eigval  =  -4.87470274e-01   resval  =  0   occrate  =  1   
+band#  =  4   eigval  =  -4.11053161e-01   resval  =  0   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 4 
+Etot              = -1.98183310e+01 [au]
+Efree             = -1.98183310e+01 [au]
+EfreeHarris       = -1.98079027e+01 [au]
+Ekin              = -5.18707405e+00 [au]
+Ehart             = -8.03351520e+01 [au]
+EVxc              = -5.75824617e+00 [au]
+Exc               = -4.39065938e+00 [au]
+EVdw              = 0 [au]
+Eself             = +9.63339958e+01 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -1.46312570e+01 [au]
+Fermi             = -4.11053161e-01 [au]
+Total charge      = 8 [au]
+HOMO              = -1.11853258e+01 [eV]
+
+norm(out-in)/norm(in) = +1.47324592e-01
+Efree diff per atom   = +3.47610486e-03
+Total time for this SCF iteration = 8.930563 [s] 
+
+
+*********************************************************************
+SCF iteration # 5 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+band#  =  1   eigval  =  -8.37579037e-01   resval  =  0   occrate  =  1   
+band#  =  2   eigval  =  -4.02161754e-01   resval  =  0   occrate  =  1   
+band#  =  3   eigval  =  -2.49887110e-01   resval  =  0   occrate  =  1   
+band#  =  4   eigval  =  -1.74109035e-01   resval  =  0   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 5 
+Etot              = -1.58256850e+01 [au]
+Efree             = -1.58256850e+01 [au]
+EfreeHarris       = -1.79587308e+01 [au]
+Ekin              = -3.32747387e+00 [au]
+Ehart             = -8.25988957e+01 [au]
+EVxc              = -5.21992936e+00 [au]
+Exc               = -3.98304043e+00 [au]
+EVdw              = 0 [au]
+Eself             = +9.63339958e+01 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -1.24982112e+01 [au]
+Fermi             = -1.74109035e-01 [au]
+Total charge      = 8 [au]
+HOMO              = -4.73774797e+00 [eV]
+
+norm(out-in)/norm(in) = +7.70760783e-02
+Efree diff per atom   = +7.11015267e-01
+Total time for this SCF iteration = 9.075214 [s] 
+
+
+*********************************************************************
+SCF iteration # 6 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+band#  =  1   eigval  =  -9.61685577e-01   resval  =  0   occrate  =  1   
+band#  =  2   eigval  =  -5.06905390e-01   resval  =  0   occrate  =  1   
+band#  =  3   eigval  =  -3.64805044e-01   resval  =  0   occrate  =  1   
+band#  =  4   eigval  =  -2.91221858e-01   resval  =  0   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 6 
+Etot              = -1.79937813e+01 [au]
+Efree             = -1.79937813e+01 [au]
+EfreeHarris       = -1.67474469e+01 [au]
+Ekin              = -4.24923574e+00 [au]
+Ehart             = -8.12760750e+01 [au]
+EVxc              = -5.53503742e+00 [au]
+Exc               = -4.22166224e+00 [au]
+EVdw              = 0 [au]
+Eself             = +9.63339958e+01 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -1.37445456e+01 [au]
+Fermi             = -2.91221858e-01 [au]
+Total charge      = 8 [au]
+HOMO              = -7.92455010e+00 [eV]
+
+norm(out-in)/norm(in) = +4.87846043e-02
+Efree diff per atom   = +4.15444807e-01
+Total time for this SCF iteration = 9.677720 [s] 
+
+
+*********************************************************************
+SCF iteration # 7 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+band#  =  1   eigval  =  -9.02926008e-01   resval  =  0   occrate  =  1   
+band#  =  2   eigval  =  -4.56609858e-01   resval  =  0   occrate  =  1   
+band#  =  3   eigval  =  -3.12735570e-01   resval  =  0   occrate  =  1   
+band#  =  4   eigval  =  -2.37265835e-01   resval  =  0   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 7 
+Etot              = -1.70865603e+01 [au]
+Efree             = -1.70865603e+01 [au]
+EfreeHarris       = -1.75636201e+01 [au]
+Ekin              = -3.81907454e+00 [au]
+Ehart             = -8.17823514e+01 [au]
+EVxc              = -5.41465157e+00 [au]
+Exc               = -4.13049290e+00 [au]
+EVdw              = 0 [au]
+Eself             = +9.63339958e+01 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -1.32674857e+01 [au]
+Fermi             = -2.37265835e-01 [au]
+Total charge      = 8 [au]
+HOMO              = -6.45633199e+00 [eV]
+
+norm(out-in)/norm(in) = +1.91742179e-03
+Efree diff per atom   = +1.59019954e-01
+Total time for this SCF iteration = 9.500941 [s] 
+
+
+*********************************************************************
+SCF iteration # 8 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+band#  =  1   eigval  =  -9.06096328e-01   resval  =  0   occrate  =  1   
+band#  =  2   eigval  =  -4.59067062e-01   resval  =  0   occrate  =  1   
+band#  =  3   eigval  =  -3.15560627e-01   resval  =  0   occrate  =  1   
+band#  =  4   eigval  =  -2.40480655e-01   resval  =  0   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 8 
+Etot              = -1.71635006e+01 [au]
+Efree             = -1.71635006e+01 [au]
+EfreeHarris       = -1.71098951e+01 [au]
+Ekin              = -3.84240934e+00 [au]
+Ehart             = -8.17254469e+01 [au]
+EVxc              = -5.42821953e+00 [au]
+Exc               = -4.14076190e+00 [au]
+EVdw              = 0 [au]
+Eself             = +9.63339958e+01 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -1.33210913e+01 [au]
+Fermi             = -2.40480655e-01 [au]
+Total charge      = 8 [au]
+HOMO              = -6.54381168e+00 [eV]
+
+norm(out-in)/norm(in) = +2.42446042e-03
+Efree diff per atom   = +1.78685088e-02
+Total time for this SCF iteration = 9.158185 [s] 
+
+
+*********************************************************************
+SCF iteration # 9 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+band#  =  1   eigval  =  -9.03839456e-01   resval  =  0   occrate  =  1   
+band#  =  2   eigval  =  -4.57219522e-01   resval  =  0   occrate  =  1   
+band#  =  3   eigval  =  -3.13409929e-01   resval  =  0   occrate  =  1   
+band#  =  4   eigval  =  -2.38257643e-01   resval  =  0   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 9 
+Etot              = -1.71173321e+01 [au]
+Efree             = -1.71173321e+01 [au]
+EfreeHarris       = -1.71465444e+01 [au]
+Ekin              = -3.82545310e+00 [au]
+Ehart             = -8.17564482e+01 [au]
+EVxc              = -5.42085448e+00 [au]
+Exc               = -4.13518589e+00 [au]
+EVdw              = 0 [au]
+Eself             = +9.63339958e+01 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -1.32918790e+01 [au]
+Fermi             = -2.38257643e-01 [au]
+Total charge      = 8 [au]
+HOMO              = -6.48332046e+00 [eV]
+
+norm(out-in)/norm(in) = +6.54650585e-05
+Efree diff per atom   = +9.73742036e-03
+Total time for this SCF iteration = 9.383434 [s] 
+
+
+*********************************************************************
+SCF iteration # 10 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+band#  =  1   eigval  =  -9.03966655e-01   resval  =  0   occrate  =  1   
+band#  =  2   eigval  =  -4.57325004e-01   resval  =  0   occrate  =  1   
+band#  =  3   eigval  =  -3.13519871e-01   resval  =  0   occrate  =  1   
+band#  =  4   eigval  =  -2.38371630e-01   resval  =  0   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 10 
+Etot              = -1.71192950e+01 [au]
+Efree             = -1.71192950e+01 [au]
+EfreeHarris       = -1.71182453e+01 [au]
+Ekin              = -3.82636632e+00 [au]
+Ehart             = -8.17553349e+01 [au]
+EVxc              = -5.42111649e+00 [au]
+Exc               = -4.13538435e+00 [au]
+EVdw              = 0 [au]
+Eself             = +9.63339958e+01 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -1.32929287e+01 [au]
+Fermi             = -2.38371630e-01 [au]
+Total charge      = 8 [au]
+HOMO              = -6.48642219e+00 [eV]
+
+norm(out-in)/norm(in) = +6.65668769e-05
+Efree diff per atom   = +3.49908607e-04
+Total time for this SCF iteration = 9.164560 [s] 
+
+
+*********************************************************************
+SCF iteration # 11 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+band#  =  1   eigval  =  -9.03901810e-01   resval  =  0   occrate  =  1   
+band#  =  2   eigval  =  -4.57270750e-01   resval  =  0   occrate  =  1   
+band#  =  3   eigval  =  -3.13460628e-01   resval  =  0   occrate  =  1   
+band#  =  4   eigval  =  -2.38310097e-01   resval  =  0   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 11 
+Etot              = -1.71181377e+01 [au]
+Efree             = -1.71181377e+01 [au]
+EfreeHarris       = -1.71188153e+01 [au]
+Ekin              = -3.82588657e+00 [au]
+Ehart             = -8.17560541e+01 [au]
+EVxc              = -5.42094538e+00 [au]
+Exc               = -4.13525478e+00 [au]
+EVdw              = 0 [au]
+Eself             = +9.63339958e+01 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -1.32922511e+01 [au]
+Fermi             = -2.38310097e-01 [au]
+Total charge      = 8 [au]
+HOMO              = -6.48474780e+00 [eV]
+
+norm(out-in)/norm(in) = +3.25603150e-06
+Efree diff per atom   = +2.25877274e-04
+Total time for this SCF iteration = 9.465960 [s] 
+
+
+*********************************************************************
+SCF iteration # 12 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+band#  =  1   eigval  =  -9.03899850e-01   resval  =  0   occrate  =  1   
+band#  =  2   eigval  =  -4.57269112e-01   resval  =  0   occrate  =  1   
+band#  =  3   eigval  =  -3.13458636e-01   resval  =  0   occrate  =  1   
+band#  =  4   eigval  =  -2.38308011e-01   resval  =  0   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 12 
+Etot              = -1.71180907e+01 [au]
+Efree             = -1.71180907e+01 [au]
+EfreeHarris       = -1.71181223e+01 [au]
+Ekin              = -3.82587122e+00 [au]
+Ehart             = -8.17560876e+01 [au]
+EVxc              = -5.42093736e+00 [au]
+Exc               = -4.13524871e+00 [au]
+EVdw              = 0 [au]
+Eself             = +9.63339958e+01 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -1.32922195e+01 [au]
+Fermi             = -2.38308011e-01 [au]
+Total charge      = 8 [au]
+HOMO              = -6.48469105e+00 [eV]
+
+norm(out-in)/norm(in) = +4.63204153e-07
+Efree diff per atom   = +1.05209104e-05
+SCF is converged in 12 steps !
+Total time for this SCF iteration = 9.204243 [s] 
+
+
+*********************************************************************
+Energy 
+*********************************************************************
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+! Etot              = -1.71180907e+01 [au]
+! Efree             = -1.71180907e+01 [au]
+! EfreeHarris       = -1.71181223e+01 [au]
+! EVdw              = 0 [au]
+Eext                = 0 [au]
+! Fermi             = -2.38308011e-01 [au]
+! HOMO              = -6.48469105e+00 [eV]
+
+*********************************************************************
+Atomic Force 
+*********************************************************************
+
+atom 1   force +1.85507963e-02 +2.68944961e-02 -2.14367113e-09   
+atom 2   force +1.85508359e-02 -2.68944959e-02 -1.51341417e-09   
+atom 3   force -3.72258055e-02 +5.51987334e-07 -3.61943297e-08   
+
+force for centroid  : -1.24173288e-04 +5.52164974e-07 -3.98514150e-08
+Max force magnitude : +3.72258055e-02
+
+! Total time for the SCF iteration = 112.543450 [s]

@@ -1,0 +1,72 @@
+# H2O 
+
+Mixing_Variable:       potential
+Mixing_Type:           anderson
+#Mixing_Type:           kerker+anderson
+Mixing_StepLength:     0.7
+Mixing_MaxDim:         20
+Temperature:           0
+
+# Eig_MaxIter:           50  # eig()
+Eig_MaxIter:           10  # LOBPCG
+# Eig_Tolerance:         1e-10
+Eig_Tolerance:        1e-7
+Eig_Min_Tolerance:     1e-9
+
+# SCF_Outer_MaxIter:     20
+SCF_Outer_MaxIter:     100
+
+PW_Solver:            LOBPCG
+# PW_Solver:             PPCG
+# PW_Solver:             eigs
+# PPCG_sbSize:           2
+# PW_Solver:           CheFSI
+# First_SCF_PWDFT_ChebyCycleNum:       0
+
+Pseudo_Type:           ONCV
+# Pseudo_Type:           HGH
+
+begin UPF_File 
+    ../../ppdata/default/sg15_oncv_upf_2020/H_ONCV_PBE-1.0.upf
+    ../../ppdata/default/sg15_oncv_upf_2020/O_ONCV_PBE-1.0.upf
+end UPF_File
+
+
+XC_Type:               XC_LDA_XC_TETER93
+# XC_Type:                XC_GGA_XC_PBE
+# XC_Type:            XC_LDA_XC_PZ
+
+# VDW_Type: DFT-D2  # used with gga
+
+
+Ecut_Wavefunction:     10
+
+begin Super_Cell
+    10.00000          10.00000       10.00000
+end Super_Cell
+
+Atom_Types_Num:        2
+
+Atom_Type:             1
+
+begin Atom_Red
+         0.11       0.14         0.00
+         0.11      -0.14         0.00
+end Atom_Red
+
+Atom_Type:             8
+
+begin Atom_Red 
+         0.00       0.00         0.00
+end Atom_Red
+
+
+Use_Atom_Density: 0
+Use_VLocal: 0
+
+Output_Wfn: 1
+Output_Density: 1
+Output_Struct_Info:  1
+
+Restart_Density:  0
+Restart_Wfn:  0

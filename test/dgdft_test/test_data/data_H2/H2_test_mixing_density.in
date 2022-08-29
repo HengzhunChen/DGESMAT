@@ -1,0 +1,27 @@
+# H2 molecule
+
+begin Super_Cell 
+    10    10    40
+end Super_Cell
+
+begin Element_Size 
+    1    1    4
+end Element_Size
+
+Atom_Types_Num:        1
+
+Atom_Type:             1
+
+begin Atom_Red:
+   -0.07   0.00   0.10
+    0.07   0.00   0.10
+   -0.07   0.00   0.35
+    0.07   0.00   0.35
+   -0.07   0.00   0.60
+    0.07   0.00   0.60
+   -0.07   0.00   0.85
+    0.07   0.00   0.85
+end Atom_Red
+
+Mixing_Variable:    density
+

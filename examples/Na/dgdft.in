@@ -1,0 +1,29 @@
+# example Na with 6 atoms
+
+begin Super_Cell
+    7.999400        23.998200        7.999400
+end Super_Cell
+
+begin Element_Size 
+    1  3  1
+end Element_Size
+
+ALB_Num:         9
+
+Atom_Types_Num:        1
+
+Atom_Type:            11
+
+begin Atom_Red
+    0.000000         0.000000        0.000000
+    0.400000         0.166667        0.500000
+    0.000000         0.333333        0.000000
+    0.500000         0.500000        0.500000
+    0.000000         0.666667        0.000000
+    0.600000         0.833333        0.500000
+end Atom_Red
+
+
+Mixing_StepLength:  0.1
+Mixing_Type:   kerker+anderson
+

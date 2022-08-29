@@ -1,0 +1,44 @@
+# H2 with ecut 10 (PWDFT)
+
+Mixing_Variable:       potential
+Mixing_Type:           anderson
+Mixing_StepLength:     0.7
+Mixing_MaxDim:         20
+
+Temperature:           300
+
+# Eig_MaxIter:           200  # eig()
+Eig_MaxIter:           10  # LOBPCG
+Eig_Tolerance:         1e-10
+Eig_Min_Tolerance:     1e-9
+
+# SCF_Outer_MaxIter:     20
+SCF_Outer_MaxIter:     100
+
+PW_Solver:            LOBPCG
+# PW_Solver:             eigs
+
+Pseudo_Type:           ONCV
+# Pseudo_Type:           HGH
+XC_Type:               XC_LDA_XC_TETER93
+
+Ecut_Wavefunction:     10
+
+begin Super_Cell
+    10.00000          10.00000       40.00000
+end Super_Cell
+
+Atom_Types_Num:        1
+
+Atom_Type:             1
+
+begin Atom_Red
+   -0.07   0.00   0.10
+    0.07   0.00   0.10
+   -0.07   0.00   0.35
+    0.07   0.00   0.35
+   -0.07   0.00   0.60
+    0.07   0.00   0.60
+   -0.07   0.00   0.85
+    0.07   0.00   0.85
+end Atom_Red

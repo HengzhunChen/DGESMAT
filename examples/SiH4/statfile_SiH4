@@ -1,0 +1,1027 @@
+Time for reading the input file is 0.017006 [s]
+
+*********************************************************************
+Common information 
+*********************************************************************
+
+Super cell                           = 10  10  10
+Grid Wavefunction                    = 16  16  16
+Grid Density                         = 32  32  32
+Mixing dimension                     = 9
+Mixing variable                      = potential
+Mixing type                          = anderson
+Mixing Steplength                    = +8.00000000e-01
+Temperature                          = 300 [K]
+Extra states                         = 0
+Smearing scheme                      = FD
+PW Solver                            = LOBPCG
+XC Type                              = XC_LDA_XC_TETER93
+Pseudo Type                          = ONCV
+SCF Outer Tol                        = 1e-06
+SCF Outer MaxIter                    = 20
+SCF Free Energy Per Atom Tol         = +1.00000000e-04
+Eig Min Tolerence                    = +1.00000000e-03
+Eig Tolerence                        = 1e-20
+Eig MaxIter                          = 3
+Eig Tolerance Dyn                    = 0
+Num unused state                     = 0
+EcutWavefunction                     = +1.25000000e+01
+Density GridFactor                   = 2
+Use Atom Density                     = 0
+Use VLocal                           = 0
+RestartDensity                       = 0
+RestartWfn                           = 0
+OutputDensity                        = 0
+Number of Extra Electron             = 0
+
+Ion move mode                        = 
+Max steps for ion                    = 0
+MD time step                         = 40
+Ion Temperature                      = 300 [K]
+Thermostat mass                      = 85000
+Langevin damping                     = +1.00000000e-02
+RestartPosition                      = 0
+RestartVelocity                      = 0
+OutputPosition                       = 1
+OutputVelocity                       = 1
+Output XYZ format                    = 1
+Force tol for geoopt                 = +1.00000000e-03
+MD extrapolation type                = linear
+MD extrapolation variable            = density
+MD SCF Phi MaxIter                   = 10
+MD SCF Outer MaxIter                 = 20
+MD SCF Energy Criteria Engage Iter   = 1
+MD SCF Etot diff                     = +1.00000000e-04
+MD SCF Eband diff                    = +1.00000000e-04
+
+
+*********************************************************************
+PWDFT information 
+*********************************************************************
+
+SCF Phi MaxIter                      = 10
+SCF Phi Tol                          = 1e-06
+Hybrid ACE                           = 1
+Hybrid DF                            = 0
+Hybrid DF Type                       = QRCP
+Hybrid DF Kmeans WF Type             = Add
+Hybrid DF Kmeans WF Alpha            = 2
+Hybrid Active Init                   = 0
+Hybrid Mixing Type                   = nested
+Hybrid DF Num Mu                     = 6
+Hybrid DF Num GaussianRandom         = 2
+Hybrid DF Tolerance                  = 1e-20
+EXX div type                         = 1
+OutputWfn                            = 0
+
+NumAtom = 5
+Atom Type and Coordinates (possibly after shifting into unit cell)
+
+Type =  1   Position =  +1.61000000e+00 +1.61000000e+00 +1.61000000e+00   
+Type =  1   Position =  -1.61000000e+00 -1.61000000e+00 +1.61000000e+00   
+Type =  1   Position =  +1.61000000e+00 -1.61000000e+00 -1.61000000e+00   
+Type =  1   Position =  -1.61000000e+00 +1.61000000e+00 -1.61000000e+00   
+Type =  14   Position =  0  0  0   
+
+UPF version: 2 
+ pseudo_type = NC 
+ upf_functional = PBE 
+ upf_zval =     1.00 
+ upf_lmax = 0 
+ upf_llocal = -1 
+ upf_mesh_size =    602 
+ upf_nwf = 0 
+ upf_proj = 2 
+ index = 1 
+ angular_momentum = 0 
+ index = 2 
+ angular_momentum = 0 
+ PP_DIJ size =    4 
+
+UPF version: 2 
+ pseudo_type = NC 
+ upf_functional = PBE 
+ upf_zval =     4.00 
+ upf_lmax = 1 
+ upf_llocal = -1 
+ upf_mesh_size =    602 
+ upf_nwf = 0 
+ upf_proj = 4 
+ index = 1 
+ angular_momentum = 0 
+ index = 2 
+ angular_momentum = 0 
+ index = 3 
+ angular_momentum = 1 
+ index = 4 
+ angular_momentum = 1 
+ PP_DIJ size =   16 
+
+Computing the local pseudopotential
+Time for local pseudopotential 0.025320 [s] 
+Sum of Pseudocharge                          = -1.65803328e+03
+Number of Occupied States                    = 4
+After adjustment, Sum of Pseudocharge        = 8
+Computing the non-local pseudo pseudopotential
+Total number of nonlocal pseudopotential = 16
+Time for nonlocal pseudopotential 0.009421 [s]
+Time for calculating the pseudopotential for the Hamlitonian is 0.036901 [s]
+Generating initial density through linear combination of pseudocharges.
+Initial density. Sum of density       = 8
+Rescaled density. Sum of density      = 8
+
+*********************************************************************
+Starting regular SCF iteration. 
+*********************************************************************
+
+
+*********************************************************************
+SCF iteration # 1 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 7 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 1.52845428e-01 
+The minimum norm of the residual is 3.89859188e-04 
+
+band#  =  1   eigval  =  -2.25546029e-01   resval  =  +3.89859188e-04   occrate  =  1   
+band#  =  2   eigval  =  -3.75387834e-02   resval  =  +4.64822708e-03   occrate  =  1   
+band#  =  3   eigval  =  -3.49580849e-02   resval  =  +5.73177658e-03   occrate  =  1   
+band#  =  4   eigval  =  +7.07673016e-03   resval  =  +1.52845428e-01   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 1 
+Etot              = -4.94906934e+00 [au]
+Efree             = -4.94906934e+00 [au]
+EfreeHarris       = -5.11369415e+00 [au]
+Ekin              = -5.81932335e-01 [au]
+Ehart             = -1.72802615e-01 [au]
+EVxc              = -1.99222008e+00 [au]
+Exc               = -1.53215969e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.36713700e+00 [au]
+Fermi             = +7.07673016e-03 [au]
+Total charge      = 8 [au]
+HOMO              = +1.92567629e-01 [eV]
+
+norm(out-in)/norm(in) = +3.07875979e-01
+Efree diff per atom   = +3.29249626e-02
+Total time for this SCF iteration = 0.112570 [s] 
+
+
+*********************************************************************
+SCF iteration # 2 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 6 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 2.63349355e-02 
+The minimum norm of the residual is 6.57291159e-04 
+
+band#  =  1   eigval  =  -2.43843164e-01   resval  =  +6.57291159e-04   occrate  =  1   
+band#  =  2   eigval  =  -6.64393185e-02   resval  =  +2.05070722e-02   occrate  =  1   
+band#  =  3   eigval  =  -6.13320275e-02   resval  =  +2.63349355e-02   occrate  =  1   
+band#  =  4   eigval  =  -5.26086747e-02   resval  =  +9.82219624e-03   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 2 
+Etot              = -5.45152759e+00 [au]
+Efree             = -5.45152759e+00 [au]
+EfreeHarris       = -5.21558337e+00 [au]
+Ekin              = -8.48446369e-01 [au]
+Ehart             = +8.81723956e-02 [au]
+EVxc              = -2.09790754e+00 [au]
+Exc               = -1.61281636e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.60308122e+00 [au]
+Fermi             = -5.26086747e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.43155490e+00 [eV]
+
+norm(out-in)/norm(in) = +2.77802193e-01
+Efree diff per atom   = +4.71888443e-02
+Total time for this SCF iteration = 0.098243 [s] 
+
+
+*********************************************************************
+SCF iteration # 3 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 5 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 1.02828148e-02 
+The minimum norm of the residual is 3.44580427e-04 
+
+band#  =  1   eigval  =  -2.30024095e-01   resval  =  +3.44580427e-04   occrate  =  1   
+band#  =  2   eigval  =  -4.81038139e-02   resval  =  +2.50796795e-03   occrate  =  1   
+band#  =  3   eigval  =  -4.50949487e-02   resval  =  +1.02828148e-02   occrate  =  1   
+band#  =  4   eigval  =  -4.20095953e-02   resval  =  +5.54282512e-03   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 3 
+Etot              = -5.17548205e+00 [au]
+Efree             = -5.17548205e+00 [au]
+EfreeHarris       = -5.33354613e+00 [au]
+Ekin              = -7.30464905e-01 [au]
+Ehart             = -8.66129941e-02 [au]
+EVxc              = -2.02728306e+00 [au]
+Exc               = -1.55891320e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.44501714e+00 [au]
+Fermi             = -4.20095953e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.14313927e+00 [eV]
+
+norm(out-in)/norm(in) = +5.06448847e-02
+Efree diff per atom   = +3.16128159e-02
+Total time for this SCF iteration = 0.085242 [s] 
+
+
+*********************************************************************
+SCF iteration # 4 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 4.25021557e-03 
+The minimum norm of the residual is 9.81356102e-04 
+
+band#  =  1   eigval  =  -2.30003274e-01   resval  =  +9.81356102e-04   occrate  =  1   
+band#  =  2   eigval  =  -4.65290030e-02   resval  =  +2.63090419e-03   occrate  =  1   
+band#  =  3   eigval  =  -4.49195820e-02   resval  =  +4.25021557e-03   occrate  =  1   
+band#  =  4   eigval  =  -4.34016518e-02   resval  =  +2.02223341e-03   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 4 
+Etot              = -5.16179029e+00 [au]
+Efree             = -5.16179029e+00 [au]
+EfreeHarris       = -5.17472416e+00 [au]
+Ekin              = -7.29707021e-01 [au]
+Ehart             = -1.00931836e-01 [au]
+EVxc              = -2.02143178e+00 [au]
+Exc               = -1.55444689e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.43208327e+00 [au]
+Fermi             = -4.34016518e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.18101906e+00 [eV]
+
+norm(out-in)/norm(in) = +2.08243681e-02
+Efree diff per atom   = +2.58677419e-03
+Total time for this SCF iteration = 0.063672 [s] 
+
+
+*********************************************************************
+SCF iteration # 5 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 2.55684480e-03 
+The minimum norm of the residual is 5.79164437e-04 
+
+band#  =  1   eigval  =  -2.30717383e-01   resval  =  +5.79164437e-04   occrate  =  1   
+band#  =  2   eigval  =  -4.57805968e-02   resval  =  +2.55684480e-03   occrate  =  1   
+band#  =  3   eigval  =  -4.56590990e-02   resval  =  +1.63478335e-03   occrate  =  1   
+band#  =  4   eigval  =  -4.55699065e-02   resval  =  +1.26810219e-03   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 5 
+Etot              = -5.16539052e+00 [au]
+Efree             = -5.16539052e+00 [au]
+EfreeHarris       = -5.16753724e+00 [au]
+Ekin              = -7.35453971e-01 [au]
+Ehart             = -1.03361155e-01 [au]
+EVxc              = -2.02024147e+00 [au]
+Exc               = -1.55353918e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42993655e+00 [au]
+Fermi             = -4.55699065e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24002027e+00 [eV]
+
+norm(out-in)/norm(in) = +7.47917455e-03
+Efree diff per atom   = +4.29344591e-04
+Total time for this SCF iteration = 0.068447 [s] 
+
+
+*********************************************************************
+SCF iteration # 6 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 9.43513952e-04 
+The minimum norm of the residual is 2.55800919e-04 
+
+band#  =  1   eigval  =  -2.30830065e-01   resval  =  +2.55800919e-04   occrate  =  1   
+band#  =  2   eigval  =  -4.58664838e-02   resval  =  +4.26154864e-04   occrate  =  1   
+band#  =  3   eigval  =  -4.58084176e-02   resval  =  +7.22945680e-04   occrate  =  1   
+band#  =  4   eigval  =  -4.57041677e-02   resval  =  +9.43513952e-04   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 6 
+Etot              = -5.16427864e+00 [au]
+Efree             = -5.16427864e+00 [au]
+EfreeHarris       = -5.16635482e+00 [au]
+Ekin              = -7.36418267e-01 [au]
+Ehart             = -1.05648095e-01 [au]
+EVxc              = -2.01935107e+00 [au]
+Exc               = -1.55285953e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42786037e+00 [au]
+Fermi             = -4.57041677e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24367370e+00 [eV]
+
+norm(out-in)/norm(in) = +3.72865774e-03
+Efree diff per atom   = +4.15235760e-04
+Total time for this SCF iteration = 0.073200 [s] 
+
+
+*********************************************************************
+SCF iteration # 7 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 3.91503967e-04 
+The minimum norm of the residual is 5.44226818e-05 
+
+band#  =  1   eigval  =  -2.30807521e-01   resval  =  +5.44226818e-05   occrate  =  1   
+band#  =  2   eigval  =  -4.57912690e-02   resval  =  +1.59757138e-04   occrate  =  1   
+band#  =  3   eigval  =  -4.57778379e-02   resval  =  +3.91503967e-04   occrate  =  1   
+band#  =  4   eigval  =  -4.57592557e-02   resval  =  +3.74983517e-04   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 7 
+Etot              = -5.16425007e+00 [au]
+Efree             = -5.16425007e+00 [au]
+EfreeHarris       = -5.16413214e+00 [au]
+Ekin              = -7.36271768e-01 [au]
+Ehart             = -1.05522970e-01 [au]
+EVxc              = -2.01938160e+00 [au]
+Exc               = -1.55288287e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42797831e+00 [au]
+Fermi             = -4.57592557e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24517273e+00 [eV]
+
+norm(out-in)/norm(in) = +1.23304431e-03
+Efree diff per atom   = +2.35870631e-05
+Total time for this SCF iteration = 0.074195 [s] 
+
+
+*********************************************************************
+SCF iteration # 8 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 5.19538194e-04 
+The minimum norm of the residual is 3.13577688e-05 
+
+band#  =  1   eigval  =  -2.30806917e-01   resval  =  +3.13577688e-05   occrate  =  1   
+band#  =  2   eigval  =  -4.57915516e-02   resval  =  +5.19538194e-04   occrate  =  1   
+band#  =  3   eigval  =  -4.57768826e-02   resval  =  +2.75164281e-04   occrate  =  1   
+band#  =  4   eigval  =  -4.57674396e-02   resval  =  +1.96125531e-04   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 8 
+Etot              = -5.16429209e+00 [au]
+Efree             = -5.16429209e+00 [au]
+EfreeHarris       = -5.16426389e+00 [au]
+Ekin              = -7.36285581e-01 [au]
+Ehart             = -1.05491604e-01 [au]
+EVxc              = -2.01939503e+00 [au]
+Exc               = -1.55289315e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42800651e+00 [au]
+Fermi             = -4.57674396e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24539542e+00 [eV]
+
+norm(out-in)/norm(in) = +6.98564098e-04
+Efree diff per atom   = +5.64134456e-06
+Total time for this SCF iteration = 0.068019 [s] 
+
+
+*********************************************************************
+SCF iteration # 9 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 1.48688068e-04 
+The minimum norm of the residual is 1.17574701e-05 
+
+band#  =  1   eigval  =  -2.30814908e-01   resval  =  +1.17574701e-05   occrate  =  1   
+band#  =  2   eigval  =  -4.57886419e-02   resval  =  +3.95779316e-05   occrate  =  1   
+band#  =  3   eigval  =  -4.57875134e-02   resval  =  +9.21674828e-05   occrate  =  1   
+band#  =  4   eigval  =  -4.57862287e-02   resval  =  +1.48688068e-04   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 9 
+Etot              = -5.16426774e+00 [au]
+Efree             = -5.16426774e+00 [au]
+EfreeHarris       = -5.16436110e+00 [au]
+Ekin              = -7.36354584e-01 [au]
+Ehart             = -1.05595645e-01 [au]
+EVxc              = -2.01934988e+00 [au]
+Exc               = -1.55285868e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42791316e+00 [au]
+Fermi             = -4.57862287e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24590670e+00 [eV]
+
+norm(out-in)/norm(in) = +3.11203329e-04
+Efree diff per atom   = +1.86713956e-05
+Total time for this SCF iteration = 0.067940 [s] 
+
+
+*********************************************************************
+SCF iteration # 10 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 8.84006671e-05 
+The minimum norm of the residual is 6.21067400e-06 
+
+band#  =  1   eigval  =  -2.30818833e-01   resval  =  +6.21067400e-06   occrate  =  1   
+band#  =  2   eigval  =  -4.57953239e-02   resval  =  +5.11648174e-05   occrate  =  1   
+band#  =  3   eigval  =  -4.57914326e-02   resval  =  +1.43507711e-05   occrate  =  1   
+band#  =  4   eigval  =  -4.57888444e-02   resval  =  +8.84006671e-05   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 10 
+Etot              = -5.16435930e+00 [au]
+Efree             = -5.16435930e+00 [au]
+EfreeHarris       = -5.16430202e+00 [au]
+Ekin              = -7.36388868e-01 [au]
+Ehart             = -1.05531950e-01 [au]
+EVxc              = -2.01937706e+00 [au]
+Exc               = -1.55287944e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42797043e+00 [au]
+Fermi             = -4.57888444e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24597787e+00 [eV]
+
+norm(out-in)/norm(in) = +1.75284866e-04
+Efree diff per atom   = +1.14543468e-05
+Total time for this SCF iteration = 0.072226 [s] 
+
+
+*********************************************************************
+SCF iteration # 11 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 7.66907177e-05 
+The minimum norm of the residual is 6.28791608e-06 
+
+band#  =  1   eigval  =  -2.30816861e-01   resval  =  +6.28791608e-06   occrate  =  1   
+band#  =  2   eigval  =  -4.57917240e-02   resval  =  +7.66907177e-05   occrate  =  1   
+band#  =  3   eigval  =  -4.57901011e-02   resval  =  +3.39243495e-05   occrate  =  1   
+band#  =  4   eigval  =  -4.57893794e-02   resval  =  +5.35781156e-05   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 11 
+Etot              = -5.16435853e+00 [au]
+Efree             = -5.16435853e+00 [au]
+EfreeHarris       = -5.16434656e+00 [au]
+Ekin              = -7.36376131e-01 [au]
+Ehart             = -1.05519128e-01 [au]
+EVxc              = -2.01938064e+00 [au]
+Exc               = -1.55288216e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42798240e+00 [au]
+Fermi             = -4.57893794e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24599243e+00 [eV]
+
+norm(out-in)/norm(in) = +1.90310516e-04
+Efree diff per atom   = +2.39420836e-06
+Total time for this SCF iteration = 0.072912 [s] 
+
+
+*********************************************************************
+SCF iteration # 12 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 1.85533100e-05 
+The minimum norm of the residual is 3.83675598e-06 
+
+band#  =  1   eigval  =  -2.30816866e-01   resval  =  +3.83675598e-06   occrate  =  1   
+band#  =  2   eigval  =  -4.57908764e-02   resval  =  +8.90455930e-06   occrate  =  1   
+band#  =  3   eigval  =  -4.57902537e-02   resval  =  +1.85533100e-05   occrate  =  1   
+band#  =  4   eigval  =  -4.57899976e-02   resval  =  +8.55009549e-06   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 12 
+Etot              = -5.16435241e+00 [au]
+Efree             = -5.16435241e+00 [au]
+EfreeHarris       = -5.16435839e+00 [au]
+Ekin              = -7.36375988e-01 [au]
+Ehart             = -1.05525671e-01 [au]
+EVxc              = -2.01937828e+00 [au]
+Exc               = -1.55288037e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42797642e+00 [au]
+Fermi             = -4.57899976e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24600925e+00 [eV]
+
+norm(out-in)/norm(in) = +9.13775237e-05
+Efree diff per atom   = +1.19639423e-06
+Total time for this SCF iteration = 0.070758 [s] 
+
+
+*********************************************************************
+SCF iteration # 13 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 2.10627829e-05 
+The minimum norm of the residual is 1.30594076e-06 
+
+band#  =  1   eigval  =  -2.30817001e-01   resval  =  +1.30594076e-06   occrate  =  1   
+band#  =  2   eigval  =  -4.57907816e-02   resval  =  +2.10627829e-05   occrate  =  1   
+band#  =  3   eigval  =  -4.57903869e-02   resval  =  +1.24653227e-05   occrate  =  1   
+band#  =  4   eigval  =  -4.57903262e-02   resval  =  +1.84101649e-05   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 13 
+Etot              = -5.16435634e+00 [au]
+Efree             = -5.16435634e+00 [au]
+EfreeHarris       = -5.16435341e+00 [au]
+Ekin              = -7.36376992e-01 [au]
+Ehart             = -1.05522407e-01 [au]
+EVxc              = -2.01937968e+00 [au]
+Exc               = -1.55288144e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42797935e+00 [au]
+Fermi             = -4.57903262e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24601820e+00 [eV]
+
+norm(out-in)/norm(in) = +4.39248476e-05
+Efree diff per atom   = +5.86346712e-07
+Total time for this SCF iteration = 0.069148 [s] 
+
+
+*********************************************************************
+SCF iteration # 14 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 3.04316895e-05 
+The minimum norm of the residual is 1.00491352e-06 
+
+band#  =  1   eigval  =  -2.30816590e-01   resval  =  +1.00491352e-06   occrate  =  1   
+band#  =  2   eigval  =  -4.57902921e-02   resval  =  +1.75422867e-05   occrate  =  1   
+band#  =  3   eigval  =  -4.57899090e-02   resval  =  +1.43878117e-05   occrate  =  1   
+band#  =  4   eigval  =  -4.57898569e-02   resval  =  +3.04316895e-05   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 14 
+Etot              = -5.16434267e+00 [au]
+Efree             = -5.16434267e+00 [au]
+EfreeHarris       = -5.16435264e+00 [au]
+Ekin              = -7.36373296e-01 [au]
+Ehart             = -1.05533433e-01 [au]
+EVxc              = -2.01937523e+00 [au]
+Exc               = -1.55287804e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42796938e+00 [au]
+Fermi             = -4.57898569e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24600542e+00 [eV]
+
+norm(out-in)/norm(in) = +5.88987616e-05
+Efree diff per atom   = +1.99449688e-06
+Total time for this SCF iteration = 0.070125 [s] 
+
+
+*********************************************************************
+SCF iteration # 15 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 6.99452959e-06 
+The minimum norm of the residual is 5.09742179e-07 
+
+band#  =  1   eigval  =  -2.30816687e-01   resval  =  +5.09742179e-07   occrate  =  1   
+band#  =  2   eigval  =  -4.57901990e-02   resval  =  +3.23279283e-06   occrate  =  1   
+band#  =  3   eigval  =  -4.57901788e-02   resval  =  +4.20050921e-06   occrate  =  1   
+band#  =  4   eigval  =  -4.57899765e-02   resval  =  +6.99452959e-06   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 15 
+Etot              = -5.16434883e+00 [au]
+Efree             = -5.16434883e+00 [au]
+EfreeHarris       = -5.16434346e+00 [au]
+Ekin              = -7.36374082e-01 [au]
+Ehart             = -1.05527509e-01 [au]
+EVxc              = -2.01937758e+00 [au]
+Exc               = -1.55287983e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42797474e+00 [au]
+Fermi             = -4.57899765e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24600868e+00 [eV]
+
+norm(out-in)/norm(in) = +3.32084301e-05
+Efree diff per atom   = +1.07361028e-06
+Total time for this SCF iteration = 0.078474 [s] 
+
+
+*********************************************************************
+SCF iteration # 16 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 5.84640826e-06 
+The minimum norm of the residual is 1.91061157e-07 
+
+band#  =  1   eigval  =  -2.30816705e-01   resval  =  +1.91061157e-07   occrate  =  1   
+band#  =  2   eigval  =  -4.57901534e-02   resval  =  +4.19616526e-06   occrate  =  1   
+band#  =  3   eigval  =  -4.57901279e-02   resval  =  +3.68958728e-06   occrate  =  1   
+band#  =  4   eigval  =  -4.57900976e-02   resval  =  +5.84640826e-06   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 16 
+Etot              = -5.16434840e+00 [au]
+Efree             = -5.16434840e+00 [au]
+EfreeHarris       = -5.16434891e+00 [au]
+Ekin              = -7.36374169e-01 [au]
+Ehart             = -1.05528066e-01 [au]
+EVxc              = -2.01937738e+00 [au]
+Exc               = -1.55287968e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42797423e+00 [au]
+Fermi             = -4.57900976e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24601197e+00 [eV]
+
+norm(out-in)/norm(in) = +8.90044928e-06
+Efree diff per atom   = +1.02027790e-07
+Total time for this SCF iteration = 0.069619 [s] 
+
+
+*********************************************************************
+SCF iteration # 17 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 3.28696977e-06 
+The minimum norm of the residual is 9.40763722e-08 
+
+band#  =  1   eigval  =  -2.30816805e-01   resval  =  +9.40763722e-08   occrate  =  1   
+band#  =  2   eigval  =  -4.57902655e-02   resval  =  +2.78721037e-06   occrate  =  1   
+band#  =  3   eigval  =  -4.57902509e-02   resval  =  +2.36683307e-06   occrate  =  1   
+band#  =  4   eigval  =  -4.57901883e-02   resval  =  +3.28696977e-06   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 17 
+Etot              = -5.16435014e+00 [au]
+Efree             = -5.16435014e+00 [au]
+EfreeHarris       = -5.16434925e+00 [au]
+Ekin              = -7.36375019e-01 [au]
+Ehart             = -1.05527064e-01 [au]
+EVxc              = -2.01937785e+00 [au]
+Exc               = -1.55288004e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42797513e+00 [au]
+Fermi             = -4.57901883e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24601444e+00 [eV]
+
+norm(out-in)/norm(in) = +8.69558736e-06
+Efree diff per atom   = +1.78106701e-07
+Total time for this SCF iteration = 0.069260 [s] 
+
+
+*********************************************************************
+SCF iteration # 18 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 1.28516944e-06 
+The minimum norm of the residual is 6.06777612e-08 
+
+band#  =  1   eigval  =  -2.30816800e-01   resval  =  +6.06777612e-08   occrate  =  1   
+band#  =  2   eigval  =  -4.57902801e-02   resval  =  +4.28484852e-07   occrate  =  1   
+band#  =  3   eigval  =  -4.57902288e-02   resval  =  +6.79392430e-07   occrate  =  1   
+band#  =  4   eigval  =  -4.57901980e-02   resval  =  +1.28516944e-06   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 18 
+Etot              = -5.16435038e+00 [au]
+Efree             = -5.16435038e+00 [au]
+EfreeHarris       = -5.16435014e+00 [au]
+Ekin              = -7.36375014e-01 [au]
+Ehart             = -1.05526798e-01 [au]
+EVxc              = -2.01937794e+00 [au]
+Exc               = -1.55288011e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42797537e+00 [au]
+Fermi             = -4.57901980e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24601471e+00 [eV]
+
+norm(out-in)/norm(in) = +5.83553196e-06
+Efree diff per atom   = +4.88695422e-08
+Total time for this SCF iteration = 0.077881 [s] 
+
+
+*********************************************************************
+SCF iteration # 19 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 9.84345228e-07 
+The minimum norm of the residual is 4.37797755e-08 
+
+band#  =  1   eigval  =  -2.30816784e-01   resval  =  +4.37797755e-08   occrate  =  1   
+band#  =  2   eigval  =  -4.57902376e-02   resval  =  +1.44118309e-07   occrate  =  1   
+band#  =  3   eigval  =  -4.57902211e-02   resval  =  +4.24932756e-07   occrate  =  1   
+band#  =  4   eigval  =  -4.57901868e-02   resval  =  +9.84345228e-07   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 19 
+Etot              = -5.16435012e+00 [au]
+Efree             = -5.16435012e+00 [au]
+EfreeHarris       = -5.16435023e+00 [au]
+Ekin              = -7.36374859e-01 [au]
+Ehart             = -1.05526914e-01 [au]
+EVxc              = -2.01937789e+00 [au]
+Exc               = -1.55288007e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42797527e+00 [au]
+Fermi             = -4.57901868e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24601440e+00 [eV]
+
+norm(out-in)/norm(in) = +3.47772514e-06
+Efree diff per atom   = +2.06513873e-08
+Total time for this SCF iteration = 0.073885 [s] 
+
+
+*********************************************************************
+SCF iteration # 20 
+*********************************************************************
+
+The current tolerance used by the eigensolver is 1.00000000e-20 
+The target number of converged eigenvectors is 4 
+Minmum tolerance is 1.00000000e-03 
+
+After 3 iterations, LOBPCG did not converge. 
+The maximum norm of the residual is 7.82861847e-07 
+The minimum norm of the residual is 1.90353493e-08 
+
+band#  =  1   eigval  =  -2.30816784e-01   resval  =  +1.90353493e-08   occrate  =  1   
+band#  =  2   eigval  =  -4.57902279e-02   resval  =  +2.12226471e-07   occrate  =  1   
+band#  =  3   eigval  =  -4.57902124e-02   resval  =  +4.38641200e-07   occrate  =  1   
+band#  =  4   eigval  =  -4.57901979e-02   resval  =  +7.82861847e-07   occrate  =  1   
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+SCF Iteration # 20 
+Etot              = -5.16434997e+00 [au]
+Efree             = -5.16434997e+00 [au]
+EfreeHarris       = -5.16435011e+00 [au]
+Ekin              = -7.36374844e-01 [au]
+Ehart             = -1.05527073e-01 [au]
+EVxc              = -2.01937783e+00 [au]
+Exc               = -1.55288002e+00 [au]
+EVdw              = 0 [au]
+Eself             = 5 [au]
+EIonSR            =  [au]
+Eext              = 0 [au]
+Ecor              = -4.42797512e+00 [au]
+Fermi             = -4.57901979e-02 [au]
+Total charge      = 8 [au]
+HOMO              = -1.24601470e+00 [eV]
+
+norm(out-in)/norm(in) = +2.40182557e-06
+Efree diff per atom   = +2.87809584e-08
+Total time for this SCF iteration = 0.075199 [s] 
+
+
+*********************************************************************
+Energy 
+*********************************************************************
+
+NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext 
+       Etot  = Ekin + Ecor 
+       Efree = Etot + Entropy 
+ 
+! Etot              = -5.16434997e+00 [au]
+! Efree             = -5.16434997e+00 [au]
+! EfreeHarris       = -5.16435011e+00 [au]
+! EVdw              = 0 [au]
+Eext                = 0 [au]
+! Fermi             = -4.57901979e-02 [au]
+! HOMO              = -1.24601470e+00 [eV]
+
+*********************************************************************
+Atomic Force 
+*********************************************************************
+
+atom 1   force -9.86327194e-01 -9.86320010e-01 -9.86323853e-01   
+atom 2   force +9.86310501e-01 +9.86326302e-01 -9.86331179e-01   
+atom 3   force -9.86318007e-01 +9.86330719e-01 +9.86319355e-01   
+atom 4   force +9.86335648e-01 -9.86325558e-01 +9.86312102e-01   
+atom 5   force +1.03526800e-06 +3.54372536e-05 -6.15741985e-05   
+
+force for centroid  : +1.98283691e-06 +4.68903468e-05 -8.51493333e-05
+Max force magnitude : +1.70836404e+00
+
+! Total time for the SCF iteration = 1.556512 [s]

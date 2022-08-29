@@ -1,0 +1,35 @@
+# SiH4 molecule
+
+Ecut_Wavefunction:     12.5
+
+begin Super_Cell
+    10    10    10
+end Super_Cell
+
+Atom_Types_Num: 2
+
+Atom_Type: 1
+
+begin Atom_Red
+     0.161   0.161    0.161
+    -0.161  -0.161    0.161
+     0.161  -0.161   -0.161
+    -0.161   0.161   -0.161
+end Atom_Red
+
+Atom_Type: 14
+
+begin Atom_Red
+    0    0    0
+end Atom_Red
+
+
+PW_Solver:    CheFSI
+First_SCF_PWDFT_ChebyFilterOrder:    40
+First_SCF_PWDFT_ChebyCycleNum:    0
+General_SCF_PWDFT_ChebyFilterOrder:    35
+PWDFT_Cheby_use_wfn_ecut_filt:    1
+
+SCF_Outer_Tolerance:    1e-4
+SCF_Outer_MaxIter:    100
+

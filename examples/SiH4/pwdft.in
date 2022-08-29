@@ -1,0 +1,39 @@
+# SiH4
+
+Mixing_Type: anderson
+
+SCF_Outer_MaxIter:    20
+
+PW_Solver:    LOBPCG
+# PW_Solver:   CheFSI
+XC_Type:    XC_LDA_XC_TETER93
+# XC_Type:   XC_LDA_XC_PZ
+
+Pseudo_Type:  ONCV
+
+
+Ecut_Wavefunction:     12.5
+
+begin Super_Cell
+    10,   10,   10
+end Super_Cell
+
+Atom_Types_Num: 2
+
+Atom_Type: 1
+
+begin Atom_Red
+     0.161   0.161    0.161
+    -0.161  -0.161    0.161
+     0.161  -0.161   -0.161
+    -0.161   0.161   -0.161
+end Atom_Red
+
+Atom_Type:  14
+
+begin Atom_Red
+    0    0    0
+end Atom_Red
+
+
+Use_VLocal:  0
