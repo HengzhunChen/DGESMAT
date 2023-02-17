@@ -1,20 +1,21 @@
-function PT = Setup(PT)
+function PT = Setup(PT, esdfParam)
 % PERIODTABLE/SETUP prepares data of PeriodTable class.
 %
 %    See also PeriodTable, PTEntry, PeriodChart, ESDFInputParam.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
-global esdfParam
+pseudoType = esdfParam.basic.pseudoType;
+upfFile = esdfParam.basic.upfFile;
+atomTypes = esdfParam.basic.atomTypes;
 
 periodChart = PeriodChart();  % basic information of atoms
 
 % read pseudopotential data
-if esdfParam.basic.pseudoType == "ONCV"
-    upfFile = esdfParam.basic.upfFile;
+if pseudoType == "ONCV"
     if ~isempty(upfFile)
         % read data from UPF files
         for i = 1 : length(upfFile)
@@ -23,22 +24,21 @@ if esdfParam.basic.pseudoType == "ONCV"
         end
     else
         % use data from default UPF files
-        atomTypes = esdfParam.basic.atomTypes;
         for i = 1 : length(atomTypes)
             atomType = atomTypes(i);
             atomSymbol = periodChart.symbol(atomType);
             
             fileName = atomSymbol + "_ONCV_PBE-1.2.upf";
             upfFile = dgesmat_root() + ...
-                "/ppdata/default/sg15_oncv_upf_2020/" + fileName;
+                "/ppdata/sg15_oncv_upf_2020/" + fileName;
             if ~exist(upfFile, 'file')
                 fileName = atomSymbol + "_ONCV_PBE-1.1.upf";
                 upfFile = dgesmat_root() + ...
-                    "/ppdata/default/sg15_oncv_upf_2020/" + fileName;                
+                    "/ppdata/sg15_oncv_upf_2020/" + fileName;                
                 if ~exist(upfFile, 'file')
                     fileName = atomSymbol + "_ONCV_PBE-1.0.upf";
                     upfFile = dgesmat_root() + ...
-                     "/ppdata/default/sg15_oncv_upf_2020/" + fileName;
+                     "/ppdata/sg15_oncv_upf_2020/" + fileName;
                 end
             end
 
@@ -51,10 +51,10 @@ else
     InfoPrint([0, 1], 'Generate HGH type pseudopotential as default. \n');
 
     % TODO: currently not support
-    if esdfParam.userOption.general.isUseVLocal
+    if PT.userOption.isUseVLocal
         error('HGH does not support option isUseVLocal currently');
     end
-    Znucs = esdfParam.basic.atomTypes;
+    Znucs = atomTypes;
     for i = 1 : length(Znucs)
         Znuc = Znucs(i);
         tempEntry = HGH(Znuc);
@@ -64,7 +64,7 @@ end
 
 
 % Extra processing of Vlocal data
-if esdfParam.userOption.general.isUseVLocal
+if PT.userOption.isUseVLocal
     for key = PT.pteMap.keys
         type = key{1};
 
@@ -102,7 +102,7 @@ for key = PT.pteMap.keys
         );
     rad = PT.pteMap(type).samples.rad;
     
-    if ~esdfParam.userOption.general.isUseVLocal
+    if ~PT.userOption.isUseVLocal
         a = PT.pteMap(type).samples.pseudoCharge;
         [b, c, d] = spline(rad, a);
         splineTemp.pseudoCharge = [rad, a, b, c, d];

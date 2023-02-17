@@ -5,8 +5,8 @@ function w = ncols(X)
 %
 %    See also Spinor, nrows.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 w = size(X.wavefun, 2);

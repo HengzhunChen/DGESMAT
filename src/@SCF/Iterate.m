@@ -3,12 +3,10 @@ function scf = Iterate(scf)
 %
 %    See also SCF.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
-
-global esdfParam;
 
 controlVar = scf.controlVar;
 
@@ -34,87 +32,69 @@ scf.eigSol.hamKS = hamKS;
 % **********************************************************************
 %                            Main Iteration                              
 % **********************************************************************
+    
+% -------------- non-hybrid functional calculation -----------------
 
-if ~scf.eigSol.hamKS.isHybrid || ~scf.eigSol.hamKS.isEXXActive
-    
-    % -------------- non-hybrid functional calculation -----------------
-    
-    PrintBlock(0, 'Starting regular SCF iteration.');
-    isSCFConverged = false;
+PrintBlock(0, 'Starting regular SCF iteration.');
+isSCFConverged = false;
 
-% TODO: check and fix the following code    
-%     hamKS = scf.eigSol.hamKS;
-%     if ~hamKS.isEXXActive && hamKS.isHybrid
-%         hamKS.XCType = "XC_GGA_XC_PBE";
-% 
-%         InfoPrint(0, ' re-calculate XC \n');
-%         if controlVar.isCalculateGradrho
-%             hamKS.gradDensity = CalculateGradDensity(hamKS);
-%         end
-%         [scf.Exc, hamKS.epsxc, hamKS.vxc] = CalculateXC(hamKS);
-%         hamKS.vhart = CalculateHartree(hamKS);
-%         hamKS.vtot = CalculateVtot(hamKS);
-%     end
-%     scf.eigSol.hamKS = hamKS;
-    
-    for iter = 1 : controlVar.scfMaxIter
-        if isSCFConverged
-            break;
-        end
-        
-        %***********************************************************
-        % Performing each iteration
-        %***********************************************************
-        
-        PrintBlock(0, 'SCF iteration # ', iter);
-        
-        timeIterStart = tic;
-        
-        % --------------- solve eigenvalue problem -------------------
-        
-        % update density, gradDensity, potential (stored in scf.vtotNew)
-        scf = InnerSolve(scf, iter);
-        
-        vtotOld = scf.eigSol.hamKS.vtot;
-        normVtotOld = norm(vtotOld, 2);
-        normVtotDiff = norm(vtotOld - scf.vtotNew, 2);
-        scf.scfNorm = normVtotDiff / normVtotOld;
-                
-        scf = scf.CalculateEnergy();
-        
-        scf.PrintState(iter);
-        
-        numAtom = length(scf.eigSol.hamKS.atomList);
-        scf.efreeDifPerAtom = abs(scf.Efree - scf.EfreeHarris) / numAtom;
-        
-        InfoPrint([0, 1], "norm(out-in)/norm(in) = ", scf.scfNorm);
-        InfoPrint([0, 1], "Efree diff per atom   = ", scf.efreeDifPerAtom); 
-        
-        if scf.scfNorm < controlVar.scfTolerance
-            % converged %
-            InfoPrint([0, 1], 'SCF is converged in %d steps !\n', iter);
-            isSCFConverged = true;
-        end
-        
-        % ----------------- Potential Mixing ----------------------------
-        
-        if scf.mixing.mixType == "anderson" || scf.mixing.mixType == "kerker+anderson"
-            [scf.eigSol.hamKS.vtot, scf.mixing.dfMat, scf.mixing.dvMat] = ...
-                scf.AndersonMix(iter, ...
-                                vtotOld, ...
-                                scf.vtotNew, ...
-                                scf.mixing.dfMat, ...
-                                scf.mixing.dvMat);
-        else
-            error('Invalid mixing type');
-        end
-        
-        
-        timeIterEnd = toc( timeIterStart );
-        InfoPrint(0, 'Total time for this SCF iteration = %8f [s] \n\n', timeIterEnd);
-        
-        % ------------------- end of iteration -------------------------
+for iter = 1 : controlVar.scfMaxIter
+    if isSCFConverged
+        break;
     end
+    
+    %***********************************************************
+    % Performing each iteration
+    %***********************************************************
+    
+    PrintBlock(0, 'SCF iteration # ', iter);
+    
+    timeIterStart = tic;
+    
+    % --------------- solve eigenvalue problem -------------------
+    
+    % update density, gradDensity, potential (stored in scf.vtotNew)
+    scf = InnerSolve(scf, iter);
+    
+    vtotOld = scf.eigSol.hamKS.vtot;
+    normVtotOld = norm(vtotOld, 2);
+    normVtotDiff = norm(vtotOld - scf.vtotNew, 2);
+    scf.scfNorm = normVtotDiff / normVtotOld;
+            
+    scf = scf.CalculateEnergy();
+    
+    scf.PrintState(iter);
+    
+    numAtom = length(scf.eigSol.hamKS.atomList);
+    scf.efreeDifPerAtom = abs(scf.Efree - scf.EfreeHarris) / numAtom;
+    
+    InfoPrint([0, 1], "norm(out-in)/norm(in) = ", scf.scfNorm);
+    InfoPrint([0, 1], "Efree diff per atom   = ", scf.efreeDifPerAtom); 
+    
+    if scf.scfNorm < controlVar.scfTolerance
+        % converged %
+        InfoPrint([0, 1], 'SCF is converged in %d steps !\n', iter);
+        isSCFConverged = true;
+    end
+    
+    % ----------------- Potential Mixing ----------------------------
+    
+    if scf.mixing.mixType == "anderson" || scf.mixing.mixType == "kerker+anderson"
+        [scf.eigSol.hamKS.vtot, scf.mixing.dfMat, scf.mixing.dvMat] = ...
+            scf.AndersonMix(iter, ...
+                            vtotOld, ...
+                            scf.vtotNew, ...
+                            scf.mixing.dfMat, ...
+                            scf.mixing.dvMat);
+    else
+        error('Invalid mixing type');
+    end
+    
+    
+    timeIterEnd = toc( timeIterStart );
+    InfoPrint(0, 'Total time for this SCF iteration = %8f [s] \n\n', timeIterEnd);
+    
+    % ------------------- end of iteration -------------------------
 end
 
 
@@ -182,30 +162,38 @@ InfoPrint([0, 1], '\n');
 % ------------------ Save info and data into files ---------------------
 
 % output structure information as file
-if esdfParam.userOption.general.isOutputStructInfo
+if scf.userOption.isOutputAtomStruct
     domain = scf.eigSol.fft.domain;
     atomList = scf.eigSol.hamKS.atomList;
-    save('STRUCTURE.mat', 'domain', 'atomList');
+    save(scf.dataFileIO.atomStructPW, 'domain', 'atomList');
 end
 
-% output restarting information as file
-if esdfParam.userOption.general.isOutputDensity
+% output data as files
+if scf.userOption.isOutputDensity
     dm = scf.eigSol.fft.domain;
     gridpos = UniformMeshFine(dm);
 
     % only work for the restricted spin case
     density = scf.eigSol.hamKS.density;
-    save(scf.restart.DensityFileName, 'gridpos', 'density');
+    save(scf.dataFileIO.densityPW, 'gridpos', 'density');
 end
 
-if esdfParam.userOption.PW.isOutputWfn
+if scf.userOption.isOutputWavefun
     dm = scf.eigSol.fft.domain;
     gridpos = UniformMesh(dm);
 
     wavefun = scf.eigSol.psi.wavefun;
     occupationRate = scf.eigSol.hamKS.occupationRate;
-    save(scf.restart.WfnFileName, 'gridpos', 'wavefun', 'occupationRate');
+    save(scf.dataFileIO.wavefunPW, 'gridpos', 'wavefun', 'occupationRate');
 end
 
+if scf.userOption.isOutputPotential
+    dm = scf.eigSol.fft.domain;
+    gridpos = UniformMeshFine(dm);
+    
+    % only work for the restricted spin case
+    vtot = scf.eigSol.hamKS.vtot;
+    save(scf.dataFileIO.potentialPW, 'gridpos', 'vtot');
+end
 
 end

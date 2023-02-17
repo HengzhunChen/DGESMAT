@@ -8,8 +8,8 @@ function [occupationRate, fermi] = CalculateOccupationRate(scfDG, eigVal)
 %
 %    See also SCFDG.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
@@ -32,7 +32,7 @@ if SmearingScheme == "FD"
     neig = length(eigVal);
     if neig ~= npsi
         message = "The number of eigenstates do not match. " + ...
-                  "eigVal = " + num2str(neig) + ...
+                  "numEigVal = " + num2str(neig) + ...
                   " numStateTotal  = " + num2str(npsi);
         error(message);
     end

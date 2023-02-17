@@ -6,14 +6,14 @@ function HamKS = CalculateForce(HamKS, psi)
 %    
 %    See also HamiltonianKS, Spinor.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
-global esdfParam;
-
 dim = dimDef();
+vol = HamKS.domain.Volume();
+numGridTotalFine = HamKS.domain.NumGridTotalFine();
 
 numState = psi.NumStateTotal();
 numAtom = length(HamKS.atomList);
@@ -31,7 +31,7 @@ F = HamKS.fft;
 % This could potentially save some coding effort and perhaps better for
 % other pseudopotential such as Troullier-Martins
 
-if ~esdfParam.userOption.general.isUseVLocal
+if ~HamKS.userOption.isUseVLocal
     % pseudocharge formulation of the local contribution to the force
     vhartDrv = cell(dim, 1);
         
@@ -61,10 +61,10 @@ if ~esdfParam.userOption.general.isUseVLocal
         idx = sp.idx;
         val = sp.val;
         
-        wgt = HamKS.domain.Volume() / HamKS.domain.NumGridTotalFine();
-        resX = sum( val(:, 1) .* vhartDrv{1}(idx) .* wgt );
-        resY = sum( val(:, 1) .* vhartDrv{2}(idx) .* wgt );
-        resZ = sum( val(:, 1) .* vhartDrv{3}(idx) .* wgt );
+        wgt = vol / numGridTotalFine;
+        resX = sum( val .* vhartDrv{1}(idx) ) * wgt;
+        resY = sum( val .* vhartDrv{2}(idx) ) * wgt;
+        resZ = sum( val .* vhartDrv{3}(idx) ) * wgt;
         
         force(i, 1) = force(i, 1) + resX;
         force(i, 2) = force(i, 2) + resY;
@@ -102,10 +102,10 @@ else
         idx = sp.idx;
         val = sp.val;
         
-        wgt = HamKS.domain.Volume() / HamKS.domain.NumGridTotalFine();
-        resX = sum( val(:, 1) .* vhartDrv{1}(idx) .* wgt );
-        resY = sum( val(:, 1) .* vhartDrv{2}(idx) .* wgt );
-        resZ = sum( val(:, 1) .* vhartDrv{3}(idx) .* wgt );
+        wgt = vol / numGridTotalFine;
+        resX = sum( val .* vhartDrv{1}(idx) ) * wgt;
+        resY = sum( val .* vhartDrv{2}(idx) ) * wgt;
+        resZ = sum( val .* vhartDrv{3}(idx) ) * wgt;
         
         force(i, 1) = force(i, 1) + resX;
         force(i, 2) = force(i, 2) + resY;
@@ -122,10 +122,10 @@ else
         idx = sp.idx;
         val = sp.val;
         
-        wgt = HamKS.domain.Volume() / HamKS.domain.NumGridTotalFine();
-        resX = -sum( val(:, 1) .* HamKS.gradDensity{d}(idx, 1) .* wgt );
-        resY = -sum( val(:, 1) .* HamKS.gradDensity{d}(idx, 1) .* wgt );
-        resZ = -sum( val(:, 1) .* HamKS.gradDensity{d}(idx, 1) .* wgt );
+        wgt = vol / numGridTotalFine;
+        resX = -sum( val .* HamKS.gradDensity{d}(idx) ) * wgt;
+        resY = -sum( val .* HamKS.gradDensity{d}(idx) ) * wgt;
+        resZ = -sum( val .* HamKS.gradDensity{d}(idx) ) * wgt;
         
         force(i, 1) = force(i, 1) + resX;
         force(i, 2) = force(i, 2) + resY;
@@ -167,34 +167,28 @@ for g = 1 : numState
 
 
     % Evaluate the contribution to the atomic force
+    wgt = vol / numGridTotalFine;
+    occupationRate = HamKS.occupationRate(g);
+
     for i = 1 : numAtom
         vnlList = HamKS.pseudoList(i).vnlList;
-        for j = 1 : length(vnlList)
-            wgt = HamKS.domain.Volume() / HamKS.domain.NumGridTotalFine();
-            idx = vnlList(j).idx;
-            val = vnlList(j).val;
-            gamma = vnlList(j).wgt;
-            
-            res = zeros(4, 1);
-            VAL = 1;
-            DX = 2;
-            DY = 3;
-            DZ = 4;
-            DpsiX = psiDrvFine{1};
-            DpsiY = psiDrvFine{2};
-            DpsiZ = psiDrvFine{3};
-            
-            res(VAL) = sum( val(:, 1) .* psiFine(idx) .* sqrt(wgt) );
-            res(DX) = sum( val(:, 1) .* DpsiX(idx) .* sqrt(wgt) );
-            res(DY) = sum( val(:, 1) .* DpsiY(idx) .* sqrt(wgt) );
-            res(DZ) = sum( val(:, 1) .* DpsiZ(idx) .* sqrt(wgt) );
-            
-            occupationRate = HamKS.occupationRate;
-            force(i, 1) = force(i, 1) - 4 * occupationRate(g) * gamma * res(VAL) * res(DX);
-            force(i, 2) = force(i, 2) - 4 * occupationRate(g) * gamma * res(VAL) * res(DY);
-            force(i, 3) = force(i, 3) - 4 * occupationRate(g) * gamma * res(VAL) * res(DZ);
-            
-        end  % end for j
+        if ~isempty(vnlList)
+            idx = vnlList.idx;
+            val = vnlList.val;
+            gamma = vnlList.wgt;
+    
+            resVAL = val' * psiFine(idx);
+            resDX = val' * psiDrvFine{1}(idx);
+            resDY = val' * psiDrvFine{2}(idx);
+            resDZ = val' * psiDrvFine{3}(idx);
+    
+            force(i, 1) = force(i, 1) - ...
+                4 * occupationRate * wgt * sum(gamma .* resVAL .* resDX);
+            force(i, 2) = force(i, 2) - ...
+                4 * occupationRate * wgt * sum(gamma .* resVAL .* resDY);
+            force(i, 3) = force(i, 3) - ...
+                4 * occupationRate * wgt * sum(gamma .* resVAL .* resDZ);
+        end
     end  % end for i
     
 end  % end for g
@@ -209,7 +203,7 @@ for i = 1 : numAtom
 end
 
 % add extra contribution to the force
-if esdfParam.basic.VDWType == "DFT-D2"
+if HamKS.VDWType == "DFT-D2"
     % update force
     for i = 1 : numAtom
         HamKS.atomList(i).force = HamKS.atomList(i).force + HamKS.forceVdw(i, :);
@@ -217,7 +211,7 @@ if esdfParam.basic.VDWType == "DFT-D2"
 end
 
 % add extra contribution from short range interaction
-if esdfParam.userOption.general.isUseVLocal
+if HamKS.userOption.isUseVLocal
     for i = 1 : numAtom
         HamKS.atomList(i).force = HamKS.atomList(i).force + HamKS.forceIonSR(i, :);
     end

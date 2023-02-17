@@ -11,15 +11,15 @@ function tempEntry = HGH(Znuc)
 %
 %    See also PeriodTable, PTEntry.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
 % TODO: some elements in periodic table not being supported here
 
 InfoPrint([0, 1], 'Use HGH type pseudopotential');
-InfoPrint([0, 1], 'Znuc %d\n', Znuc);
+InfoPrint([0, 1], 'Znuc %d\n\n', Znuc);
 
 
 % ----------------------------------------------------------------------

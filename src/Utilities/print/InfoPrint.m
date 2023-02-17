@@ -1,21 +1,20 @@
 function InfoPrint(varargin)
 % INFOPRINT prints variables and their value. 
 % 
-%    InfoPrint(msg) prints message to statistics file, screen and debug 
-%    file.
+%    InfoPrint(msg) prints message to statistics file and screen.
 %    
 %    InfoPrint(name, value) prints variable with name and value to 
-%    statistics file, screen and debug file. 
+%    statistics file and screen. 
 %
 %    InfoPrint(name, value, unit) prints variable and its value and unit to
-%    statistics file, screen and debug file.
+%    statistics file and screen.
 %
 %    InfoPrint(nameList, valueList) prints a list to variables and their
-%    values to statistics file, screen and debug file.
+%    values to statistics file and screen.
 %
 %    InfoPrint(formatSpec, A1, ..., An) applies the formatSpec to all 
 %    elements of arrays A1,...An in column order, and writes the data to 
-%    statistics file, screen and debug file. 
+%    statistics file and screen. 
 %
 %
 %    InfoPrint(printId, msg) prints message to output files with ID 
@@ -34,18 +33,17 @@ function InfoPrint(varargin)
 %    all elements of arrays A1,...An in column order, and writes the data 
 %    to output file with ID printId. 
 %
-%    If printId == 0, print the banner to the statistics file.
-%    If printId == 1, print the banner to the screen.
-%    If printId == 2, print the banner to debug file.
+%    If printId == 0, print the message to the statistics file.
+%    If printId == 1, print the message to the screen.
 %
-%    See also InfoPrint, PrintBlock, fprintf.
+%    See also PrintBlock, fprintf.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
-global outFid debugFid;
+global outFid;
 screenID = 1;
 
 printId = []; 
@@ -58,12 +56,9 @@ if isa(varargin{1}, 'numeric')
     if ismember(1, fidList)
         printId = [printId, screenID];
     end
-    if ismember(2, fidList)
-        printId = [printId, debugFid];
-    end
 else
     infoStart = 1;
-    printId = [outFid, screenID, debugFid];
+    printId = [outFid, screenID];
 end
 
 name = varargin{infoStart};
@@ -93,6 +88,7 @@ else
         name = varargin{infoStart};
         value = varargin{infoStart + 1};
         if isnumeric(value)
+            value = reshape(value, 1, []);
             if contains(num2str(value), '.')
                 valuestr = num2str(value, '%+1.8e ');
             else
@@ -110,6 +106,7 @@ else
         unit = varargin{infoStart + 2};
 
         if isnumeric(value)
+            value = reshape(value, 1, []);
             if contains(num2str(value), '.')
                 valuestr = num2str(value, '%+1.8e ');
             else
@@ -129,6 +126,7 @@ else
         for i = 1 : length(valueList)
             value = valueList{i};
             if isnumeric(value)
+                value = reshape(value, 1, []);
                 if contains(num2str(value), '.')
                     valuestr{i} = num2str(value, '%+1.8e ');
                 else

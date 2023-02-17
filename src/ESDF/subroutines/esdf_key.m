@@ -6,8 +6,8 @@ function esdf_key()
 %
 %    See also esdf_init, ESDFReadInput, ESDFInputParam.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
@@ -28,9 +28,6 @@ kw_label(i) = "eig_tolerance_dynamic";
 
 
 i = i + 1;
-kw_label(i) = "restart_mode";
-
-i = i + 1;
 kw_label(i) = "restart_density";
 
 i = i + 1;
@@ -38,16 +35,26 @@ kw_label(i) = "restart_wfn";
 
 
 i = i + 1;
-kw_label(i) = "output_dir";
+kw_label(i) = "output_wavefun_pw";
 
 i = i + 1;
-kw_label(i) = "output_density";
+kw_label(i) = "output_density_pw";
 
 i = i + 1;
-kw_label(i) = "output_potential";
+kw_label(i) = "output_potential_pw";
 
 i = i + 1;
-kw_label(i) = "output_wfn";
+kw_label(i) = "output_atom_struct_pw";
+
+
+i = i + 1;
+kw_label(i) = "output_density_dg";
+
+i = i + 1;
+kw_label(i) = "output_potential_dg";
+
+i = i + 1;
+kw_label(i) = "output_atom_struct_dg";
 
 i = i + 1;
 kw_label(i) = "output_alb_elem_lgl";
@@ -61,15 +68,6 @@ kw_label(i) = "output_wfn_extelem";
 i = i + 1;
 kw_label(i) = "output_pot_extelem";
 
-i = i + 1;
-kw_label(i) = "output_hmatrix";
-
-i = i + 1;
-kw_label(i) = "output_struct_info";
-
-
-i = i + 1;
-kw_label(i) = "potential_barrier";
 
 i = i + 1;
 kw_label(i) = "periodize_potential";
@@ -77,24 +75,52 @@ kw_label(i) = "periodize_potential";
 i = i + 1;
 kw_label(i) = "calculate_aposteriori_each_scf";
 
+
+
+% ************************************************************************
+%                        IO Data File Names 
+% ************************************************************************
+
 i = i + 1;
-kw_label(i) = "calculate_force_each_scf";
+kw_label(i) = "wavefun_output_file_pw";
+
+i = i + 1;
+kw_label(i) = "density_output_file_pw";
+
+i = i + 1;
+kw_label(i) = "potential_output_file_pw";
+
+i = i + 1;
+kw_label(i) = "atom_struct_output_file_pw";
 
 
 i = i + 1;
-kw_label(i) = "restart_position";
+kw_label(i) = "density_output_file_dg";
 
 i = i + 1;
-kw_label(i) = "restart_velocity";
+kw_label(i) = "potential_output_file_dg";
 
 i = i + 1;
-kw_label(i) = "output_position";
+kw_label(i) = "atom_struct_output_file_dg";
 
 i = i + 1;
-kw_label(i) = "output_velocity";
+kw_label(i) = "alb_elem_uniform_output_file";
 
 i = i + 1;
-kw_label(i) = "output_xyz";
+kw_label(i) = "alb_elem_lgl_output_file";
+
+i = i + 1;
+kw_label(i) = "wavefun_extelem_output_file";
+
+i = i + 1;
+kw_label(i) = "potential_extelem_output_file";
+
+
+i = i + 1;
+kw_label(i) = "restart_wfn_file";
+
+i = i + 1;
+kw_label(i) = "restart_density_file";
 
 
 
@@ -160,14 +186,10 @@ i = i + 1;
 kw_label(i) = "temperature";
 
 i = i + 1;
-kw_label(i) = "ion_temperature";
-
-i = i + 1;
 kw_label(i) = "extra_electron";
 
-
 i = i + 1;
-kw_label(i) = "statfile";
+kw_label(i) = "unused_states";
 
 
 
@@ -213,7 +235,6 @@ kw_label(i) = "scf_outer_maxiter";
 
 
 
-
 % ************************************************************************
 %                         PW parameters
 % ************************************************************************
@@ -254,23 +275,8 @@ i = i + 1;
 kw_label(i) = "element_size";
 
 i = i + 1;
-kw_label(i) = "element_position_start";
-
-i = i + 1;
-kw_label(i) = "element_grid_size";
-
-i = i + 1;
 kw_label(i) = "dg_solver";
 
-
-i = i + 1;
-kw_label(i) = "potential_barrier_w";
-
-i = i + 1;
-kw_label(i) = "potential_barrier_s";
-
-i = i + 1;
-kw_label(i) = "potential_barrier_r";
 
 i = i + 1;
 kw_label(i) = "ecut_wavefunction";
@@ -282,222 +288,10 @@ i = i + 1;
 kw_label(i) = "lgl_grid_factor";
 
 i = i + 1;
-kw_label(i) = "gauss_interp_factor";
-
-i = i + 1;
-kw_label(i) = "gauss_sigma";
-
-i = i + 1;
 kw_label(i) = "distance_periodize";
 
-
-
-% Inputs related to Chebyshev ploynomial Filtered SCF iterations for DG
 i = i + 1;
-kw_label(i) = "first_scfdg_chebyfilterorder";
-
-i = i + 1;
-kw_label(i) = "first_scfdg_chebycyclenum";
-
-i = i + 1;
-kw_label(i) = "second_scfdg_chebyouteriter";
-
-i = i + 1;
-kw_label(i) = "second_scfdg_chebyfilterorder";
-
-i = i + 1;
-kw_label(i) = "second_scfdg_chebycyclenum";
-
-i = i + 1;
-kw_label(i) = "general_scfdg_chebyfilterorder";
-
-i = i + 1;
-kw_label(i) = "general_scfdg_chebycyclenum";
-
-
-% Inputs related to Chebyshev polynomial filtered 
-% complementary subspace iteration strategy in DGDFT
-i = i + 1;
-kw_label(i) = "scfdg_use_chefsi_complementary_subspace";
-
-i = i + 1;
-kw_label(i) = "scfdg_chefsi_complementary_subspace_syrk";
-
-i = i + 1;
-kw_label(i) = "scfdg_chefsi_complementary_subspace_syr2k";
-
-i = i + 1;
-kw_label(i) = "scfdg_complementary_subspace_nstates";
-
-i = i + 1;
-kw_label(i) = "scfdg_cs_ioniter_regular_cheby_freq";
-
-i = i + 1;
-kw_label(i) = "scfdg_cs_bigger_grid_dim_fac";
-
-
-% Inner LOBPCG related options
-i = i + 1;
-kw_label(i) = "scfdg_complementary_subspace_inner_lobpcgtol";
-
-i = i + 1;
-kw_label(i) = "scfdg_complementary_subspace_inner_lobpcgiter";
-
-
-% Inner CheFSI related options
-i = i + 1;
-kw_label(i) = "scfdg_complementary_subspace_use_inner_cheby";
-
-i = i + 1;
-kw_label(i) = "scfdg_complementary_subspace_inner_chebyfilterorder";
-
-i = i + 1;
-kw_label(i) = "scfdg_complementary_subspace_inner_chebycyclenum";
-
-
-
-
-% ************************************************************************
-%                    Parameters for Ionic Motion
-% ************************************************************************
-
-i = i + 1;
-kw_label(i) = "ion_energy_diff";
-
-i = i + 1;
-kw_label(i) = "md_scf_energy_criteria_engage_ioniter";
-
-i = i + 1;
-kw_label(i) = "md_scf_outer_maxiter";
-
-i = i + 1;
-kw_label(i) = "md_scf_etot_diff";
-
-i = i + 1;
-kw_label(i) = "md_scf_eband_diff";
-
-
-i = i + 1;
-kw_label(i) = "energy_gap";
-
-i = i + 1;
-kw_label(i) = "spectral_radius";
-
-i = i + 1;
-kw_label(i) = "matrix_ordering";
-
-i = i + 1;
-kw_label(i) = "inertia_count";
-
-i = i + 1;
-kw_label(i) = "inertia_count_steps";
-
-i = i + 1;
-kw_label(i) = "unused_states";
-
-
-i = i + 1;
-kw_label(i) = "ion_max_iter";
-
-i = i + 1;
-kw_label(i) = "ion_move";
-
-i = i + 1;
-kw_label(i) = "geo_opt_max_force";
-
-i = i + 1;
-kw_label(i) = "geo_opt_nlcg_sigma";
-
-
-i = i + 1;
-kw_label(i) = "fire_nmin";
-
-i = i + 1;
-kw_label(i) = "fire_time_step";
-
-i = i + 1;
-kw_label(i) = "fire_atomic_mass";
-
-i = i + 1;
-kw_label(i) = "md_max_step";
-
-i = i + 1;
-kw_label(i) = "md_time_step";
-
-i = i + 1;
-kw_label(i) = "md_extrapolation_type";
-
-i = i + 1;
-kw_label(i) = "md_extrapolation_variable";
-
-i = i + 1;
-kw_label(i) = "md_extrapolation_wavefunction";
-
-i = i + 1;
-kw_label(i) = "thermostat_mass";
-
-i = i + 1;
-kw_label(i) = "langevin_damping";
-
-i = i + 1;
-kw_label(i) = "kappa_xlbomd";
-
-
-% ************************************************************************
-%                        Parameters for Hybird
-% ************************************************************************
-
-i = i + 1;
-kw_label(i) = "scf_phi_maxiter";
-
-i = i + 1;
-kw_label(i) = "md_scf_phi_maxiter";
-
-i = i + 1;
-kw_label(i) = "scf_phi_tolerance";
-
-i = i + 1;
-kw_label(i) = "hybrid_ace";
-
-i = i + 1;
-kw_label(i) = "hybrid_df";
-
-i = i + 1;
-kw_label(i) = "hybrid_df_type";
-
-i = i + 1;
-kw_label(i) = "hybrid_df_kmeans_wf_type";
-
-i = i + 1;
-kw_label(i) = "hybrid_df_kmeans_wf_alpha";
-
-i = i + 1;
-kw_label(i) = "hybrid_df_kmeans_tolerance";
-
-i = i + 1;
-kw_label(i) = "hybrid_df_kmeans_maxiter";
-
-i = i + 1;
-kw_label(i) = "hybrid_df_num_mu";
-
-i = i + 1;
-kw_label(i) = "hybrid_df_num_gaussianrandom";
-
-i = i + 1;
-kw_label(i) = "hybrid_df_tolerance";
-
-i = i + 1;
-kw_label(i) = "hybrid_active_init";
-
-i = i + 1;
-kw_label(i) = "hybrid_mixing_type";
-
-i = i + 1;
-kw_label(i) = "hybrid_ace_twice_pcdiis";
-
-i = i + 1;
-kw_label(i) = "exx_divergence_type";
-
+kw_label(i) = "buffer_size";
 
 
 end

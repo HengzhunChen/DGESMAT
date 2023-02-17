@@ -1,1 +1,4 @@
 *statfile*
+*.out
+*.sh
+*.mat

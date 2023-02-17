@@ -7,8 +7,8 @@ function EfreeSecondOrder = CalculateSecondOrderEnergy(scfDG)
 %
 %    See also SCFDG.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 % TODO: the code for EfreeSecondOrder have NOT be tested
@@ -24,14 +24,7 @@ occupationRate = hamDG.occupationRate;
 
 % Kinetic energy from the new density matrix
 numSpin = hamDG.numSpin;
-
-if scfDG.CheFSIDG.isUseCompSubspace
-    %
-    % TODO
-    %
-else
-    Ekin = numSpin * sum(eigVal .* occupationRate);
-end
+Ekin = numSpin * sum(eigVal .* occupationRate);
 
 % Self energy part
 Eself = 0;
@@ -50,24 +43,21 @@ end
 % functional and Harris energy functional.
 
 numElem = scfDG.numElem;
+numElemTotal = prod(numElem);
 
 Ehart = 0;
 EVtot = 0;
 
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            density      = scfDG.hamDG.density{i, j, k};
-            vext         = scfDG.hamDG.vext{i, j, k};
-            vtot         = scfDG.hamDG.vtot{i, j, k};
-            pseudoCharge = scfDG.hamDG.pseudoCharge{i, j, k};
-            vhart        = scfDG.hamDG.vhart{i, j, k};
-            
-            EVtot = EVtot + sum( (vtot - vext) .* density );
-            % NOTE the sign flip
-            Ehart = Ehart + 0.5 * sum( vhart .* (density - pseudoCharge) );
-        end
-    end
+for elemIdx = 1 : numElemTotal
+    density      = scfDG.hamDG.density{elemIdx};
+    vext         = scfDG.hamDG.vext{elemIdx};
+    vtot         = scfDG.hamDG.vtot{elemIdx};
+    pseudoCharge = scfDG.hamDG.pseudoCharge{elemIdx};
+    vhart        = scfDG.hamDG.vhart{elemIdx};
+    
+    EVtot = EVtot + sum( (vtot - vext) .* density );
+    % NOTE the sign flip
+    Ehart = Ehart + 0.5 * sum( vhart .* (density - pseudoCharge) );
 end
 
 Ehart = Ehart * scfDG.domain.Volume() / scfDG.domain.NumGridTotalFine();
@@ -96,36 +86,28 @@ else
     SmearingScheme = scfDG.smearing.SmearingScheme;
     MPSmearingOrder = scfDG.smearing.MPsmearingOrder;
     
-    if scfDG.CheFSIDG.isUseCompSubspace
-        %
-        % TODO
-        %
+    % full spectrum available calculation
+    if SmearingScheme == "FD"
+        idx = eigVal >= fermi;
+        EfreeSecondOrder = EfreeSecondOrder - numSpin / Tbeta * ...
+                sum( log(1 + exp(-Tbeta*(eigVal(idx) - fermi))) );
+        EfreeSecondOrder = EfreeSecondOrder + ...
+                numSpin * sum( (eigVal(~idx) - fermi) ) - ...
+                numSpin / Tbeta * sum( log(1 + exp(Tbeta*(eigVal(~idx) - fermi))) );        
+        EfreeSecondOrder = EfreeSecondOrder + Ecor + ...
+                fermi * hamDG.numOccupiedState * numSpin;
     else
-        % complementary subspace technique not in use: full spectrum
-        % available
-        if SmearingScheme == "FD"
-            idx = eigVal >= fermi;
-            EfreeSecondOrder = EfreeSecondOrder - numSpin / Tbeta * ...
-                                     sum( log(1 + exp(-Tbeta*(eigVal(idx) - fermi))) );
-            EfreeSecondOrder = EfreeSecondOrder + ...
-                                numSpin * sum( (eigVal(~idx) - fermi) ) - ...
-                                numSpin / Tbeta * sum( log(1 + exp(Tbeta*(eigVal(~idx) - fermi))) );
-            
-            EfreeSecondOrder = EfreeSecondOrder + Ecor + ...
-                                fermi * hamDG.numOccupiedState * numSpin;
-        else
-            % GB or MP schemes in use            
-            occupTol = 1e-12;
-            
-            occup = occupationRate;
-            idx = occup > occupTol && (1.0 - occup) > occupTol;
-            
-            x = (eigVal(idx) - fermi) / Tsigma;
-            occupEnergyPart = sum( MPentropy(x, MPSmearingOrder) );
-           
-            EfreeSecondOrder = Ekin + Ecor + (numSpin * Tsigma) * occupEnergyPart;
-        end
-    end  % end of full spectrum available calculation
+        % GB or MP schemes in use            
+        occupTol = 1e-12;
+        
+        occup = occupationRate;
+        idx = occup > occupTol && (1.0 - occup) > occupTol;
+        
+        x = (eigVal(idx) - fermi) / Tsigma;
+        occupEnergyPart = sum( MPentropy(x, MPSmearingOrder) );
+       
+        EfreeSecondOrder = Ekin + Ecor + (numSpin * Tsigma) * occupEnergyPart;
+    end
 end  % end of finite temperature calculation
 
     

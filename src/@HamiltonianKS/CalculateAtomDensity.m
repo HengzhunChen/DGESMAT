@@ -9,14 +9,12 @@ function atomDensity = CalculateAtomDensity(HamKS, ptable)
 %    See also HamiltonianKS, PeriodTable/CalculateAtomDensity, Atom, 
 %    SCF/Setup.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
-global esdfParam;
-
-if esdfParam.basic.pseudoType == "HGH"
+if HamKS.pseudoType == "HGH"
     error('HGH pseudopotential does not yet support the computation of atomic density!');
 end
 
@@ -37,7 +35,7 @@ for i = 1 : numAtom
     nelec = nelec + ptable.Zion(atype);
 end
 % add extra electron
-nelec = nelec + esdfParam.basic.extraElectron;
+nelec = nelec + HamKS.numExtraElectron;
 if mod(nelec, 2) ~= 0
     error('This is spin-restricted calculation, nelec should be even.');
 end
@@ -83,7 +81,7 @@ for atype = atomTypeSet
     Y = F * atomDensityR; 
     
     % make it smoother: AGGREESIVELY truncate components beyond EcutWavefunction
-    idxnz = (F.gkkFine ./ 2) < esdfParam.basic.ecutWavefunction;
+    idxnz = (F.gkkFine ./ 2) < HamKS.ecutWavefunction;
     atomDensityG = atomDensityG + Y .* ccvec;
     atomDensityG(~idxnz) = 0;
 end

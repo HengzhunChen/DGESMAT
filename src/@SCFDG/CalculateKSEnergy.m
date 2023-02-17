@@ -6,8 +6,8 @@ function scfDG = CalculateKSEnergy(scfDG)
 %
 %    See also SCFDG.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 % TODO: the code for Efree have NOT be tested
@@ -19,14 +19,7 @@ occupationRate = hamDG.occupationRate;
 
 % Band energy
 numSpin = hamDG.numSpin;
-
-if scfDG.CheFSIDG.isUseCompSubspace
-    %
-    % TODO
-    %
-else
-    Ekin = numSpin * sum(eigVal .* occupationRate);
-end
+Ekin = numSpin * sum(eigVal .* occupationRate);
 scfDG.Ekin = Ekin;
 
 % Self energy part
@@ -40,23 +33,20 @@ scfDG.Eself = Eself;
 
 % Hartree and XC part
 numElem = scfDG.numElem;
+numElemTotal = prod(numElem);
 
 Ehart = 0;
 EVxc = 0;
 
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            density      = scfDG.hamDG.density{i, j, k};
-            vxc          = scfDG.hamDG.vxc{i, j, k};
-            pseudoCharge = scfDG.hamDG.pseudoCharge{i, j, k};
-            vhart        = scfDG.hamDG.vhart{i, j, k};
-            
-            EVxc = EVxc + sum(vxc .* density);
-            % NOTE the sign flip
-            Ehart = Ehart + 0.5 * sum( vhart .* (density + pseudoCharge) );
-        end
-    end
+for elemIdx = 1 : numElemTotal
+    density      = scfDG.hamDG.density{elemIdx};
+    vxc          = scfDG.hamDG.vxc{elemIdx};
+    pseudoCharge = scfDG.hamDG.pseudoCharge{elemIdx};
+    vhart        = scfDG.hamDG.vhart{elemIdx};
+    
+    EVxc = EVxc + sum(vxc .* density);
+    % NOTE the sign flip
+    Ehart = Ehart + 0.5 * sum( vhart .* (density + pseudoCharge) );
 end
 
 Ehart = Ehart * scfDG.domain.Volume() / scfDG.domain.NumGridTotalFine();
@@ -82,21 +72,15 @@ else
     fermi = scfDG.fermi;
     Tbeta = scfDG.Tbeta;
     
-    if scfDG.CheFSIDG.isUseCompSubspace
-        %
-        % TODO
-        %
-    else
-        idx = eigVal >= fermi;
-        scfDG.Efree = scfDG.Efree - numSpin / Tbeta * ...
-                      sum( log(1 + exp(-Tbeta*(eigVal(idx) - fermi))) );
-        scfDG.Efree = scfDG.Efree + ...
-                      numSpin * sum( (eigVal(~idx) - fermi) ) - ...
-                      numSpin / Tbeta * sum( log(1 + exp(Tbeta*(eigVal(~idx) - fermi))) );
+    idx = eigVal >= fermi;
+    scfDG.Efree = scfDG.Efree - numSpin / Tbeta * ...
+                  sum( log(1 + exp(-Tbeta*(eigVal(idx) - fermi))) );
+    scfDG.Efree = scfDG.Efree + ...
+                  numSpin * sum( (eigVal(~idx) - fermi) ) - ...
+                  numSpin / Tbeta * sum( log(1 + exp(Tbeta*(eigVal(~idx) - fermi))) );
 
-        scfDG.Efree = scfDG.Efree + Ecor + ...
-                      fermi * hamDG.numOccupiedState * numSpin;
-    end
+    scfDG.Efree = scfDG.Efree + Ecor + ...
+                  fermi * hamDG.numOccupiedState * numSpin;
 end
 
 

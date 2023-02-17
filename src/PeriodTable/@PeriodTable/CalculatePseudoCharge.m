@@ -3,16 +3,16 @@ function pseudoCharge = CalculatePseudoCharge(PT, atom, domain, gridpos)
 %    derivatives.
 %     
 %    pseudoCharge = CalculatePseudoCharge(PT, atom, domain, gridpos)
-%    returns a struct pseudoCharge whose members are idx, val (see also
-%    NOTE below). To Check whether pseudoCharge is empty, use
-%    `isempty(pseudoCharge.idx)` instead of `isempty(pseudoCharge)`.
+%    returns a struct pseudoCharge whose members are idx, val, drv. 
+%    idx is index with cutoff, val is value of pseudoCharge, drv is
+%    derivative in three directions.
 %    This function is used WHEN user option isUseVLocal is false.
 %
 %    See also PeriodTable, HamiltonianKS/CalculatePseudoPotential,
 %    HamiltonianDG/CalculatePseudoPotential.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
@@ -27,7 +27,8 @@ Rzero = PT.RcutPseudoCharge(atom.type);
 
 pseudoCharge = struct(...
     'idx', [], ...  % index within cutoff
-    'val', [] ...   % value and its three derivatives
+    'val', [], ...  % value of pseudocharge
+    'drv', [] ...  % derivatives in three directions
     );
 % NOTE: to check whether pseudoCharge is empty, use 
 % isempty(pseudoCharge.idx) instead of isempty(pseudoCharge)
@@ -64,16 +65,16 @@ if norm(minDist) <= Rzero
     
     derspl = spldata.drv_pseudoCharge;
     der = seval(rad, derspl(:, 1), derspl(:, 2), derspl(:, 3), derspl(:, 4), derspl(:, 5));
-    
-    dv = zeros(idxsize, dim+1);  % value and its three derivatives
+   
+    dv = zeros(idxsize, dim);  % derivatives in three directions
     idxnz = rad > MIN_RADIAL;
-    dv(:, 1) = val;  % value
-    dv(idxnz, 2) = der(idxnz) .* xx(idxnz) ./ rad(idxnz);  % DX
-    dv(idxnz, 3) = der(idxnz) .* yy(idxnz) ./ rad(idxnz);  % DY
-    dv(idxnz, 4) = der(idxnz) .* zz(idxnz) ./ rad(idxnz);  % DZ
+    dv(idxnz, 1) = der(idxnz) .* xx(idxnz) ./ rad(idxnz);  % DX
+    dv(idxnz, 2) = der(idxnz) .* yy(idxnz) ./ rad(idxnz);  % DY
+    dv(idxnz, 3) = der(idxnz) .* zz(idxnz) ./ rad(idxnz);  % DZ
 
     pseudoCharge.idx = idx;
-    pseudoCharge.val = dv;
+    pseudoCharge.val = val;
+    pseudoCharge.drv = dv;
 end
 
 end

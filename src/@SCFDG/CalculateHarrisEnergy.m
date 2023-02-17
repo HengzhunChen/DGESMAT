@@ -17,8 +17,8 @@ function EfreeHarris = CalculateHarrisEnergy(scfDG)
 %
 %    See also SCFDG.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 % TODO: the code for smearing have NOT be tested
@@ -28,6 +28,7 @@ eigVal = hamDG.eigVal;
 occupationRate = hamDG.occupationRate;
 
 numElem = scfDG.numElem;
+numElemTotal = prod(numElem);
 
 % NOTE: To avoid confusion, all energies in this routine are temporary
 % variables other than scfDG.EfreeHarris.
@@ -35,17 +36,10 @@ numElem = scfDG.numElem;
 % The related energies will be computed again in the routine 
 % CalculateKSEnergy()
 
+
 % kinetic energy from the new density matrix
 numSpin = hamDG.numSpin;
-
-if scfDG.CheFSIDG.isUseCompSubspace    
-    %
-    % TODO
-    %
-else
-    Ekin = numSpin * sum(eigVal .* occupationRate);    
-end
-
+Ekin = numSpin * sum(eigVal .* occupationRate);    
 
 % self energy part
 Eself = 0;
@@ -55,25 +49,20 @@ for i = 1 : length(atomList)
     Eself = Eself + scfDG.ptable.SelfIonInteraction(type);
 end
 
-
 % Nonlieanr correction part. This part uses the Hartree energy and XC
 % correlation energy from the old electron density.
 
 Ehart = 0;
 EVxc = 0;
 
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            density      = hamDG.density{i, j, k};
-            vxc          = hamDG.vxc{i, j, k};
-            pseudoCharge = hamDG.pseudoCharge{i, j, k};
-            vhart        = hamDG.vhart{i, j, k};
-            
-            EVxc = EVxc + sum(vxc .* density);
-            Ehart = Ehart + 0.5 * sum( vhart .* (density + pseudoCharge) );
-        end
-    end
+for elemIdx = 1 : numElemTotal
+    density      = hamDG.density{elemIdx};
+    vxc          = hamDG.vxc{elemIdx};
+    pseudoCharge = hamDG.pseudoCharge{elemIdx};
+    vhart        = hamDG.vhart{elemIdx};
+    
+    EVxc = EVxc + sum(vxc .* density);
+    Ehart = Ehart + 0.5 * sum( vhart .* (density + pseudoCharge) );
 end
 
 Ehart = Ehart * scfDG.domain.Volume() / scfDG.domain.NumGridTotalFine();
@@ -100,36 +89,27 @@ else
     SmearingScheme = scfDG.smearing.SmearingScheme;
     MPsmearingOrder = scfDG.smearing.MPsmearingOrder;
     
-    if scfDG.CheFSIDG.isUseCompSubspace
-        % Complementary subspace technique in use
-        %
-        % TODO
-        %
+    % full spectrum available calculation
+    if SmearingScheme == "FD"
+        idx = eigVal >= fermi;
+        EfreeHarris = EfreeHarris - numSpin / Tbeta * ...
+                sum( log(1 + exp(-Tbeta*(eigVal(idx) - fermi))) );
+        EfreeHarris = EfreeHarris + ...
+                numSpin * sum( (eigVal(~idx) - fermi) ) - ...
+                numSpin / Tbeta * sum( log(1 + exp(Tbeta*(eigVal(~idx) - fermi))) );            
+        EfreeHarris = EfreeHarris + Ecor + ...
+                fermi * hamDG.numOccupiedState * numSpin;
     else
-        % Complementary subspace technique not in use : full spectrum
-        % available
-        if SmearingScheme == "FD"
-            idx = eigVal >= fermi;
-            EfreeHarris = EfreeHarris - numSpin / Tbeta * ...
-                                sum( log(1 + exp(-Tbeta*(eigVal(idx) - fermi))) );
-            EfreeHarris = EfreeHarris + ...
-                                numSpin * sum( (eigVal(~idx) - fermi) ) -...
-                                numSpin / Tbeta * sum( log(1 + exp(Tbeta*(eigVal(~idx) - fermi))) );            
-            EfreeHarris = EfreeHarris + Ecor + ...
-                                fermi * hamDG.numOccupiedState * numSpin;
-        else
-            % GB or MP schemes in use            
-            occupTol = 1e-12;
-            occup = occupationRate;
-            idx = occup > occupTol && (1.0 - occup) > occupTol;
-            
-            x = (eigVal(idx) - fermi) / Tsigma;
-            occupEnergyPart = sum( MPentropy(x, MPsmearingOrder) );
-           
-            EfreeHarris = Ekin + Ecor + (numSpin * Tsigma) * occupEnergyPart;
-        end
+        % GB or MP schemes in use            
+        occupTol = 1e-12;
+        occup = occupationRate;
+        idx = occup > occupTol && (1.0 - occup) > occupTol;
         
-    end  % end of full spectrum available calculation
+        x = (eigVal(idx) - fermi) / Tsigma;
+        occupEnergyPart = sum( MPentropy(x, MPsmearingOrder) );
+       
+        EfreeHarris = Ekin + Ecor + (numSpin * Tsigma) * occupEnergyPart;
+    end        
 end  % end of finite temperature calculation
             
 

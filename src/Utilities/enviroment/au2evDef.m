@@ -3,8 +3,8 @@ function au2ev = au2evDef()
 % 
 %    See also au2angDef, au2KDef.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 au2ev = 27.211385;

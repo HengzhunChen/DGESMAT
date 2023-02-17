@@ -8,7 +8,7 @@ Mixing_StepLength:     0.005
 Extra_States:          40
 Temperature:           0.1
 
-SCF_Outer_MaxIter:     20
+SCF_Outer_MaxIter:     30
 SCF_Outer_Tolerance:   1e-6
 SCF_Inner_MaxIter:     1
 SCF_Inner_Tolerance:   1e-6
@@ -22,24 +22,14 @@ SVD_Basis_Tolerance:   1e-6
 Pseudo_Type:           ONCV
 XC_Type:               XC_LDA_XC_TETER93
 Use_VLocal:            0
-PW_Solver:             PPCG
-# PW_Solver:             LOBPCG
+# PW_Solver:             PPCG
+PW_Solver:             LOBPCG
 
-Ecut_Wavefunction:     10
+Ecut_Wavefunction:     40
 Density_Grid_Factor:   2.0
 LGL_Grid_Factor:       2.0
 
 ALB_Num: 100
-
-Calculate_Force_Each_SCF:    0
-
-First_SCFDG_ChebyFilterOrder:   20
-First_SCFDG_ChebyCycleNum:      1
-Second_SCFDG_ChebyOuterIter:    1
-Second_SCFDG_ChebyFilterOrder:  20
-Second_SCFDG_ChebyCycleNum:     1
-General_SCFDG_ChebyFilterOrder: 20
-General_SCFDG_ChebyCycleNum:    1
 
 Atom_Types_Num:        1
 Atom_Type:             6

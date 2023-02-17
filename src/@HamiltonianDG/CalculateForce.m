@@ -6,8 +6,8 @@ function HamDG = CalculateForce(HamDG)
 %    
 %    See also HamiltonianDG.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
@@ -16,6 +16,7 @@ dim = dimDef();
 
 numAtom = length(HamDG.atomList);
 numElem = HamDG.numElem;
+numElemTotal = prod(numElem);
 
 force = zeros(numAtom, dim);
 
@@ -26,16 +27,12 @@ force = zeros(numAtom, dim);
 % ***********************************************************************
 vhartDrv = cell(dim, 1);
 
-totalChargeLocal = cell(HamDG.numElem);
+totalChargeLocal = cell(numElemTotal, 1);
 % The contribution of the pseudocCharge is subtracted. So the
 % Poisson equation is well defined for neutral system.
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            totalChargeLocal{i, j, k} = ...
-                HamDG.density{i, j, k} - HamDG.pseudoCharge{i, j, k};
-        end
-    end
+for elemIdx = 1 : numElemTotal
+    totalChargeLocal{elemIdx} = ...
+        HamDG.density{elemIdx} - HamDG.pseudoCharge{elemIdx};
 end
 
 % convert tempVec from 3-dim array into 1-dim vector over global domain
@@ -71,24 +68,20 @@ end
 % Coulomb potential evaluated on a uniform grid. 
 % 
 
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            ppMap = HamDG.pseudoListElem{i, j, k};
-            for atomIdxcell = keys(ppMap)
-                atomIdx = atomIdxcell{1};  % from cell to number
-                pseudo = ppMap(atomIdx);
-                sp = pseudo.pseudoCharge;
-                idx = sp.idx;
-                val = sp.val;
+for elemIdx = 1 : numElemTotal
+    ppMap = HamDG.pseudoListElem{elemIdx};
+    for atomIdxcell = keys(ppMap)
+        atomIdx = atomIdxcell{1};  % from cell to number
+        pseudo = ppMap(atomIdx);
+        sp = pseudo.pseudoCharge;
+        idx = sp.idx;
+        val = sp.val;
 
-                wgt = HamDG.domain.Volume() / HamDG.domain.NumGridTotalFine();
-                for d = 1 : dim
-                    drv = vhartDrv{d}{i, j, k};
-                    res = sum( val(:, 1) .* drv(idx) * wgt );
-                    force(atomIdx, d) = force(atomIdx, d) + res;
-                end
-            end
+        wgt = HamDG.domain.Volume() / HamDG.domain.NumGridTotalFine();
+        for d = 1 : dim
+            drv = vhartDrv{d}{elemIdx};
+            res = sum( val .* drv(idx) ) * wgt;
+            force(atomIdx, d) = force(atomIdx, d) + res;
         end
     end
 end
@@ -117,39 +110,35 @@ for atomIdx = 1 : numAtom
         resDrvZ = zeros(numEig, numVnl);
     
         % loop over the elements overlapping with the nonlocal pseudopotenital
-        for k = 1 : numElem(3)
-            for j = 1 : numElem(2)
-                for i = 1 : numElem(1)
-                    coefMap = HamDG.vnlCoef{i, j, k};
-                    coefDrvXMap = HamDG.vnlDrvCoef{1}{i, j, k};
-                    coefDrvYMap = HamDG.vnlDrvCoef{2}{i, j, k};
-                    coefDrvZMap = HamDG.vnlDrvCoef{3}{i, j, k};
+        for elemIdx = 1 : numElemTotal
+            coefMap = HamDG.vnlCoef{elemIdx};
+            coefDrvXMap = HamDG.vnlDrvCoef{1}{elemIdx};
+            coefDrvYMap = HamDG.vnlDrvCoef{2}{elemIdx};
+            coefDrvZMap = HamDG.vnlDrvCoef{3}{elemIdx};
     
-                    localCoef = HamDG.eigvecCoef{i, j, k};
+            localCoef = HamDG.eigvecCoef{elemIdx};
     
-                    if isKey(coefMap, atomIdx)
-                        coef = coefMap(atomIdx);
-                        coefDrvX = coefDrvXMap(atomIdx);
-                        coefDrvY = coefDrvYMap(atomIdx);
-                        coefDrvZ = coefDrvZMap(atomIdx);
+            if isKey(coefMap, atomIdx)
+                coef = coefMap(atomIdx);
+                coefDrvX = coefDrvXMap(atomIdx);
+                coefDrvY = coefDrvYMap(atomIdx);
+                coefDrvZ = coefDrvZMap(atomIdx);
     
-                        % skip the calculation if there is no adaptive local
-                        % basis function
-                        if isempty(coef)
-                            continue;
-                        end
-    
-                        % value
-                        resVal = resVal + localCoef' * coef;
-    
-                        % derivative
-                        resDrvX = resDrvX + localCoef' * coefDrvX;
-                        resDrvY = resDrvY + localCoef' * coefDrvY;
-                        resDrvZ = resDrvZ + localCoef' * coefDrvZ;
-    
-                    end  % found the atom
+                % skip the calculation if there is no adaptive local
+                % basis function
+                if isempty(coef)
+                    continue;
                 end
-            end
+    
+                % value
+                resVal = resVal + localCoef' * coef;
+    
+                % derivative
+                resDrvX = resDrvX + localCoef' * coefDrvX;
+                resDrvY = resDrvY + localCoef' * coefDrvY;
+                resDrvZ = resDrvZ + localCoef' * coefDrvZ;
+    
+            end  % found the atom
         end
     
         % Add the contribution to the local force
@@ -158,11 +147,11 @@ for atomIdx = 1 : numAtom
         occupationRate = HamDG.occupationRate;  
     
         force(atomIdx, 1) = force(atomIdx, 1) - ...
-            4.0 * sum( (occupationRate * vnlWeight) .* resVal .* resDrvX, 'all');
+            4.0 * sum( (occupationRate * vnlWeight') .* resVal .* resDrvX, 'all');
         force(atomIdx, 2) = force(atomIdx, 2) - ...
-            4.0 * sum( (occupationRate * vnlWeight) .* resVal .* resDrvY, 'all');
+            4.0 * sum( (occupationRate * vnlWeight') .* resVal .* resDrvY, 'all');
         force(atomIdx, 3) = force(atomIdx, 3) - ...
-            4.0 * sum( (occupationRate * vnlWeight) .* resVal .* resDrvZ, 'all');
+            4.0 * sum( (occupationRate * vnlWeight') .* resVal .* resDrvZ, 'all');
     end
 end
  

@@ -7,8 +7,8 @@ function sparseH = ElemMatToSparse(HMat, numElem, sizeHMat)
 %
 %    See also HamiltonianDG/ElemMatToSparse.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 numElemTotal = prod(numElem);
@@ -18,10 +18,22 @@ for i = 1 : numElemTotal
     numBasisElem(i) = size(HMat{i, i}, 1);
 end
 
-idxI = cell(numElemTotal, numElemTotal);
-idxJ = cell(numElemTotal, numElemTotal);
-val  = cell(numElemTotal, numElemTotal);
+count = 0;
+for i = 1 : numElemTotal
+    for j = 1 : numElemTotal
+        if ~isempty(HMat{i, j})
+            numRows = numBasisElem(i);
+            numCols = numBasisElem(j);
+            count = count + numRows * numCols;
+        end
+    end
+end
 
+idxI = zeros(1, count);
+idxJ = zeros(1, count);
+val = zeros(1, count);
+
+cnt = 0;
 for i = 1 : numElemTotal
     for j = 1 : numElemTotal
         if ~isempty(HMat{i, j})
@@ -41,16 +53,14 @@ for i = 1 : numElemTotal
             idxCols = idxCols(:)';
             value = HMat{i, j}(:)';
 
-            idxI{i, j} = idxRows;
-            idxJ{i, j} = idxCols;
-            val{i, j} = value;
+            idxI(cnt+1 : cnt+numRows*numCols) = idxRows;
+            idxJ(cnt+1 : cnt+numRows*numCols) = idxCols;
+            val(cnt+1 : cnt+numRows*numCols) = value;
+
+            cnt = cnt + numRows * numCols;
         end
     end
 end
-
-idxI = cell2mat(idxI);
-idxJ = cell2mat(idxJ);
-val  = cell2mat(val);
 
 sparseH = sparse(idxI, idxJ, val, sizeHMat, sizeHMat);
 

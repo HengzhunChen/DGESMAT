@@ -1,4 +1,4 @@
-# H2 with ecut 10 (PWDFT)
+# H2 with 8 atoms (PWDFT)
 
 Mixing_Variable:       potential
 Mixing_Type:           anderson
@@ -16,13 +16,13 @@ Eig_Min_Tolerance:     1e-9
 SCF_Outer_MaxIter:     100
 
 PW_Solver:            LOBPCG
-# PW_Solver:             eigs
+# PW_Solver:            eigs
 
-Pseudo_Type:           ONCV
-# Pseudo_Type:           HGH
+# Pseudo_Type:           ONCV
+Pseudo_Type:           HGH
 XC_Type:               XC_LDA_XC_TETER93
 
-Ecut_Wavefunction:     10
+Ecut_Wavefunction:     40
 
 begin Super_Cell
     10.00000          10.00000       40.00000

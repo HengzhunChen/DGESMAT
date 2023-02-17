@@ -27,8 +27,8 @@ Pseudo_Type:           ONCV
 # Pseudo_Type:           HGH
 
 begin UPF_File 
-    ../../ppdata/default/sg15_oncv_upf_2020/H_ONCV_PBE-1.0.upf
-    ../../ppdata/default/sg15_oncv_upf_2020/O_ONCV_PBE-1.0.upf
+    ../../ppdata/sg15_oncv_upf_2020/H_ONCV_PBE-1.0.upf
+    ../../ppdata/sg15_oncv_upf_2020/O_ONCV_PBE-1.0.upf
 end UPF_File
 
 
@@ -61,12 +61,24 @@ begin Atom_Red
 end Atom_Red
 
 
-Use_Atom_Density: 0
-Use_VLocal: 0
+Use_Atom_Density:  0
+Use_VLocal:  0
+Eig_Tolerance_Dynamic:  0
 
-Output_Wfn: 1
-Output_Density: 1
-Output_Struct_Info:  1
+Output_Wavefun_PW:  0
+Wavefun_Output_File_PW:  WAVEFUN_PW.mat
+
+Output_Density_PW:  0
+Density_Output_File_PW:  DENSITY_PW.mat
+
+Output_Potential_PW:  0
+Potential_Output_File_PW:  POTENTIAL_PW.mat
+
+Output_Atom_Struct_PW:  0
+Atom_Struct_Output_File_PW:  ATOMSTRUCT_PW.mat
 
 Restart_Density:  0
+Restart_Density_File:  DENSITY_PW.mat
+
 Restart_Wfn:  0
+Restart_Wfn_File:  WAVEFUN_PW.mat

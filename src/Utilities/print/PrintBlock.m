@@ -1,11 +1,11 @@
 function PrintBlock(varargin)
 % PRINTBLOCK print the message in a block banner.
 %
-%    PrintBlock(msg) prints the message in the banner to statistics file,
-%    screen and debug file.
+%    PrintBlock(msg) prints the message in the banner to statistics file
+%    and screen.
 %
 %    PrintBlock(variableName, value) prints the variable with variableName
-%    and value in the banner to statistics file, screen and debug file.
+%    and value in the banner to statistics file and screen.
 %
 %    PrintBlock(printId, msg) prints the message in the banner to output 
 %    files with ID printId.
@@ -15,16 +15,15 @@ function PrintBlock(varargin)
 %
 %    If printId == 0, print the banner to the statistics file.
 %    If printId == 1, print the banner to the screen.
-%    If printId == 2, print the banner to debug file.
 %
-%    See also InfoPrint.
+%    See also InfoPrint, fprintf.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
-global outFid debugFid;
+global outFid;
 screenID = 1;
 
 printId = []; 
@@ -37,12 +36,9 @@ if isa(varargin{1}, 'numeric')
     if ismember(1, fidList)
         printId = [printId, screenID];
     end
-    if ismember(2, fidList)
-        printId = [printId, debugFid];
-    end
 else
     infoStart = 1;
-    printId = [outFid, screenID, debugFid];
+    printId = [outFid, screenID];
 end
 
 if nargin == infoStart

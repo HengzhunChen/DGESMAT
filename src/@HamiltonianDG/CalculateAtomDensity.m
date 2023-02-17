@@ -9,14 +9,12 @@ function atomDensity = CalculateAtomDensity(HamDG, ptable)
 %    See also HamiltonianDG, PeriodTable/CalculateAtomDensity, Atom, 
 %    SCFDG/Setup.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
-global esdfParam
-
-if esdfParam.basic.pseudoType == "HGH"
+if HamDG.pseudoType == "HGH"
     error("HGH pseudopotential does not yet support the computation of atomic density!");
 end
 
@@ -24,6 +22,7 @@ ntotFine = HamDG.domain.NumGridTotalFine();
 numAtom = length(HamDG.atomList);
 vol = HamDG.domain.Volume();
 numElem = HamDG.numElem;
+numElemTotal = prod(numElem);
 
 F = HamDG.fft;
 
@@ -49,7 +48,7 @@ atomTypeSet = unique(atomTypeSet);
 % structure factor. This is done by first generating the density on the
 % element-wise grid, convert to the Fourier grid, and then back.
 
-atomDensityR = cell(HamDG.numElem);
+atomDensityR = cell(numElemTotal, 1);
 
 tempAtomDensityG = zeros(ntotFine, 1);
 
@@ -59,18 +58,13 @@ for atype = atomTypeSet
     % NOTE: this should be starting point of the global domain
     fakeAtom.pos = HamDG.domain.posStart;
     
-    % compute the atomic density in all elements    
-    for k = 1 : HamDG.numElem(3)
-        for j = 1 : HamDG.numElem(2)
-            for i = 1 : HamDG.numElem(1)
-                atomDensityR{i, j, k} = zeros(prod(HamDG.grid.numUniformGridElemFine), 1);
-                % HamDG.uniformGridElemFine{i,j,k} starts from the posStart
-                % of HamDG.domainElem{i,j,k}
-                atomDensityR{i, j, k} = ptable.CalculateAtomDensity(...
-                        fakeAtom, HamDG.domain, ...
-                        HamDG.grid.uniformGridElemFine{i, j, k});
-            end
-        end
+    % compute the atomic density in all elements
+    for elemIdx = 1 : numElemTotal
+        % HamDG.uniformGridElemFine{elemIdx} starts from the posStart
+        % of HamDG.domainElem{elemIdx}
+        atomDensityR{elemIdx} = ptable.CalculateAtomDensity(...
+                fakeAtom, HamDG.domain, ...
+                HamDG.grid.uniformGridElemFine{elemIdx});
     end
     
     % convert atomic density into 1-dim vector
@@ -98,8 +92,8 @@ for atype = atomTypeSet
     % multiply with the structure factor
     Y = F * tempAtomDensityR;
     
-    % make it smoother: AGGREESIVELY truncate components beyond EcutWavefunction
-    idxnz = (F.gkkFine ./ 2) < esdfParam.basic.ecutWavefunction;
+    % make it smoother: AGGREESIVELY truncate components beyond EcutWavefun
+    idxnz = (F.gkkFine ./ 2) < HamDG.ecutWavefun;
     tempAtomDensityG = tempAtomDensityG + Y .* ccvec;
 
     tempAtomDensityG(~idxnz) = 0;
@@ -116,12 +110,8 @@ sumrho = sumrho * vol / ntotFine;
 
 % adjustment should be multiplicative
 factor = nelec / sumrho;
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            atomDensity{i, j, k} = atomDensity{i, j, k} .* factor;
-        end
-    end
+for elemIdx = 1 : numElemTotal
+    atomDensity{elemIdx} = atomDensity{elemIdx} .* factor;
 end
 
 end

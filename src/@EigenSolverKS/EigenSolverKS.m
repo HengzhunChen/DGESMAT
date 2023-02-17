@@ -15,8 +15,8 @@ classdef EigenSolverKS
     %    
     %    See also HamiltonianKS, Spinor, Fourier, SCF, SCFDG.
 
-    %  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-    %                     Fudan University
+    %  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+    %                          Fudan University
     %  This file is distributed under the terms of the MIT License.
     
     properties (SetAccess = public)

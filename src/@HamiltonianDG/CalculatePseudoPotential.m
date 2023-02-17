@@ -14,17 +14,18 @@ function HamDG = CalculatePseudoPotential(HamDG, ptable)
 %
 %    See also HamiltonianDG, PeriodTable.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 % TODO: currently not support isUseVLocal == true
 
 numAtom = length(HamDG.atomList);
 numElem = HamDG.numElem;
+numElemTotal = prod(numElem);
 
 % Very important cleaning, especially when updating the atomic positions
-HamDG.pseudoListElem = cell(numElem);
+HamDG.pseudoListElem = cell(numElemTotal, 1);
 
 
 % *********************************************************************
@@ -54,7 +55,7 @@ HamDG.numOccupiedState = nelec / HamDG.numSpin;
 
 % Check that the cutoff radius of the pseudopotential is smaller than the
 % length of the element.
-minLength = min(HamDG.domainElem(1, 1, 1).length);
+minLength = min(HamDG.domainElem{1}.length);
 for i = 1 : numAtom
     type = HamDG.atomList(i).type;
     % for the case where there is no nonlocal pseudopotential 
@@ -70,7 +71,7 @@ for i = 1 : numAtom
             "the length of the element along each dimension. " + ...
             "It is now found for atom " + num2str(i) + ...
             " , which is of type " + num2str(type) + ", Rzero = " + num2str(Rzero) + ...
-            " , while the length of element is " + num2str(HamDG.domainElem(1, 1, 1).length);
+            " , while the length of element is " + num2str(HamDG.domainElem{1}.length);
         error(msg);
     end
 end
@@ -81,70 +82,62 @@ end
 HamDG.vnlWeightMap = containers.Map('KeyType', 'double', 'ValueType', 'any');
 getWeightFlag = zeros(numAtom, 1);
 
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            % for each element, there is a ppMap containing the list of
-            % pseudopotential for those atoms who overlap with current
-            % element.
+for elemIdx = 1 : numElemTotal
+    % for each element, there is a ppMap containing the list of
+    % pseudopotential for those atoms who overlap with current element.
 
-            ppMap = containers.Map('KeyType', 'double', 'ValueType', 'any');
-            gridpos = HamDG.grid.uniformGridElemFine{i, j, k};
+    ppMap = containers.Map('KeyType', 'double', 'ValueType', 'any');
+    gridpos = HamDG.grid.uniformGridElemFine{elemIdx};
+    
+    for a = 1 : numAtom
+        type = HamDG.atomList(a).type;
+        Rzero = ptable.RcutPseudoCharge(type);
+        if ptable.IsNonlocal(type)
+            Rzero = max(Rzero, ptable.RcutNonlocal(type));
+        end
+        
+        % compute the minimum distance of this atom to all grid points
+        minDist = zeros(dimDef(), 1);
+        dmLength = HamDG.domain.length;
+        pos = HamDG.atomList(a).pos;
+        for d = 1 : dimDef()
+            dist = gridpos{d} - pos(d);
+            dist = dist - round(dist ./ dmLength(d)) .* dmLength(d);
+            minDist(d) = min([abs(dist), Rzero]);
+        end
+
+        % If this atom overlaps with this element, compute the
+        % pseudopotential
+        if norm(minDist) <= Rzero
+            pp = struct(...
+                'pseudoCharge', [], ...
+                'vLocalSR', [], ...
+                'vnlList', [] ...
+                );
+            pp.pseudoCharge = ptable.CalculatePseudoCharge(...
+                              HamDG.atomList(a), HamDG.domain, ...
+                              HamDG.grid.uniformGridElemFine{elemIdx});
+            pp.vnlList = ptable.CalculateNonlocalPP(...
+                              HamDG.atomList(a), HamDG.domain, ...
+                              HamDG.grid.LGLGridElem{elemIdx});
             
-            for a = 1 : numAtom
-                type = HamDG.atomList(a).type;
-                Rzero = ptable.RcutPseudoCharge(type);
-                if ptable.IsNonlocal(type)
-                    Rzero = max(Rzero, ptable.RcutNonlocal(type));
-                end
-                
-                % compute the minimum distance of this atom to all grid
-                % points
-                minDist = zeros(dimDef(), 1);
-                dmLength = HamDG.domain.length;
-                pos = HamDG.atomList(a).pos;
-                for d = 1 : dimDef()
-                    dist = gridpos{d} - pos(d);
-                    dist = dist - round(dist ./ dmLength(d)) .* dmLength(d);
-                    minDist(d) = min([abs(dist), Rzero]);
-                end
-
-                % If this atom overlaps with this element, compute the
-                % pseudopotential
-                if norm(minDist) <= Rzero
-                    pp = struct(...
-                        'pseudoCharge', [], ...
-                        'vLocalSR', [], ...
-                        'vnlList', [] ...
-                        );
-                    
-                    pp.pseudoCharge = ptable.CalculatePseudoCharge(...
-                                      HamDG.atomList(a), HamDG.domain, ...
-                                      HamDG.grid.uniformGridElemFine{i, j, k});
-
-                    pp.vnlList = ptable.CalculateNonlocalPP(...
-                                      HamDG.atomList(a), HamDG.domain, ...
-                                      HamDG.grid.LGLGridElem{i, j, k});
-                    
-                    ppMap(a) = pp;
-                    
-                    if getWeightFlag(a) == 0
-                        % if atom has not nonlocal pseudopotential part, 
-                        % set weight = []
-                        weight = [];
-                        if ~isempty(pp.vnlList(1).wgt)
-                            weight = [ pp.vnlList.wgt ];                        
-                            getWeightFlag(a) = 1;
-                        end
-                        HamDG.vnlWeightMap(a) = weight;
-                    end
-                end
-            end  % end for a
+            ppMap(a) = pp;
             
-            HamDG.pseudoListElem{i, j, k} = ppMap;
-        end  % end for i
-    end  % end for j
-end  % end for k
+            if getWeightFlag(a) == 0
+                % if atom has not nonlocal pseudopotential part, 
+                % set weight = []
+                weight = [];
+                if ~isempty(pp.vnlList.wgt)
+                    weight = pp.vnlList.wgt;
+                    getWeightFlag(a) = 1;
+                end
+                HamDG.vnlWeightMap(a) = weight;
+            end
+        end
+    end  % end for a
+    
+    HamDG.pseudoListElem{elemIdx} = ppMap;
+end
 
 
 % *********************************************************************
@@ -152,28 +145,24 @@ end  % end for k
 % *********************************************************************
 
 % compute the pseudocharge by summing over contributions from all atoms
-HamDG.pseudoCharge = cell(numElem);
+HamDG.pseudoCharge = cell(numElemTotal, 1);
 
 sumRho = 0.0;
 
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            ppMap = HamDG.pseudoListElem{i, j, k};
-            localVec = zeros(prod(HamDG.grid.numUniformGridElemFine), 1);
-            for atomIdxcell = keys(ppMap)
-                atomIdx = atomIdxcell{1};
-                pp = ppMap(atomIdx);
-                sp = pp.pseudoCharge;
-                idx = sp.idx;
-                val = sp.val;
-                localVec(idx) = localVec(idx) + val(:, 1);  % index 1 means VAL
-            end
-            HamDG.pseudoCharge{i, j, k} = localVec;
-            
-            sumRho = sumRho + sum(localVec);
-        end
+for elemIdx = 1 : numElemTotal
+    ppMap = HamDG.pseudoListElem{elemIdx};
+    localVec = zeros(prod(HamDG.grid.numUniformGridElemFine), 1);
+    for atomIdxcell = keys(ppMap)
+        atomIdx = atomIdxcell{1};
+        pp = ppMap(atomIdx);
+        sp = pp.pseudoCharge;
+        idx = sp.idx;
+        val = sp.val;
+        localVec(idx) = localVec(idx) + val;
     end
+    HamDG.pseudoCharge{elemIdx} = localVec;
+    
+    sumRho = sumRho + sum(localVec);
 end
 
 % compute the sum of the pseudocharge and make adjustment
@@ -182,12 +171,8 @@ sumRho = sumRho .* (HamDG.domain.Volume() / HamDG.domain.NumGridTotalFine());
 % make adjustments to the pseudocharge
 fac = HamDG.numSpin * HamDG.numOccupiedState / sumRho;
 
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            HamDG.pseudoCharge{i, j, k} = HamDG.pseudoCharge{i, j, k} .* fac;
-        end
-    end
+for elemIdx = 1 : numElemTotal
+    HamDG.pseudoCharge{elemIdx} = HamDG.pseudoCharge{elemIdx} .* fac;
 end
 
 

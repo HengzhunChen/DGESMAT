@@ -6,10 +6,10 @@ function y = ifft3Execute(x, numGrid, vol)
 %    numGridTotal * numCol) over domain with number of grid numGrid 
 %    (vector) and volume vol.
 %
-%    See also ifft3Execute, Fourier, Spinor/ifft3.
+%    See also fft3Execute, Fourier, Spinor/ifft3.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 ntot = prod(numGrid);

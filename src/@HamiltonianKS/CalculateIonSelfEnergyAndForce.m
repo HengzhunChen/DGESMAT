@@ -5,12 +5,10 @@ function [Eself, EIonSR, forceIonSR] = CalculateIonSelfEnergyAndForce(HamKS, pta
 %
 %    See also HamiltonianKS/CalculatePseudoPotential.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
-
-global esdfParam;
 
 atomList = HamKS.atomList;
 numAtom = length(atomList);
@@ -26,7 +24,7 @@ end
 EIonSR = 0;
 forceIonSR = zeros(numAtom, dimDef());
 
-if esdfParam.userOption.general.isUseVLocal
+if HamKS.userOption.isUseVLocal
     dm = HamKS.domain;
     
     for a = 1 : numAtom

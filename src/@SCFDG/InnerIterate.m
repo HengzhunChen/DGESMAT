@@ -6,17 +6,15 @@ function scfDG = InnerIterate(scfDG, outerIter)
 %
 %    See also SCFDG, HamiltonianDG.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
-global esdfParam;
-
 numElem = scfDG.numElem;
+numElemTotal = prod(numElem);
 controlVar = scfDG.controlVar;
 DGSolver = scfDG.DGSolver;
-CheFSIDG = scfDG.CheFSIDG;
 
 isInnerSCFConverged = false;
 
@@ -28,12 +26,14 @@ for innerIter = 1 : controlVar.scfInnerMaxIter
     scfDG.scfTotalInnerIter = scfDG.scfTotalInnerIter + 1;
     
     timeIterStart = tic;    
-    InfoPrint(0, '\n Inner iteration # %d of outer iteration # %d starts. \n\n', innerIter, outerIter);
+    InfoPrint(0, '\nInner iteration # %d of outer iteration # %d starts. \n\n', ...
+        innerIter, outerIter);
     
     % ********************************************************************
     % Update potential and construct/update the DG matrix
     % ********************************************************************
     
+    timeStart = tic;
     if innerIter == 1
         % The first inner iteration does not update the potential, and
         % construct the global Hamiltonian matrix from scratch
@@ -55,25 +55,23 @@ for innerIter = 1 : controlVar.scfInnerMaxIter
         
         % save the difference of the potential on the LGL grid into
         % scfDG.vtotLGLSave
-        for k = 1 : numElem(3)
-            for j = 1 : numElem(2)
-                for i = 1 : numElem(1)
-                    scfDG.vtotLGLSave{i, j, k} = ...
-                        scfDG.hamDG.vtotLGL{i, j, k} - scfDG.vtotLGLSave{i, j, k};
-                end
-            end
+        for elemIdx = 1 : numElemTotal
+            scfDG.vtotLGLSave{elemIdx} = ...
+                scfDG.hamDG.vtotLGL{elemIdx} - scfDG.vtotLGLSave{elemIdx};
         end
                 
         % update the DG matrix
         scfDG.hamDG = UpdateDGMatrix(scfDG.hamDG, scfDG.vtotLGLSave);
 
     end
+    timeEnd = toc(timeStart);
+    InfoPrint(0, ' Total time for constructing or updating DG matrix is %8f [s] \n\n', timeEnd);
     
     
     % ********************************************************************
     % Evaluate the density matrix
     % 
-    % Options: eigs, PEXSI(TODO), CheFSI(TODO)
+    % Options: eigs
     % ********************************************************************
 
     %
@@ -89,152 +87,77 @@ for innerIter = 1 : controlVar.scfInnerMaxIter
     %
     % solve HMat
     % 
-    if DGSolver == "CheFSI"
-        timeStart = tic;
-
-        if scfDG.ionDyn.ionDynIter ~= 0
-            if CheFSIDG.isUseCompSubspace
-                %
-                % TODO
-                %
-            else
-                %
-                % TODO
-                %
-            end
-        else
-            % 0th MD / Geometry Optimization Step (or static calculation)
-            if outerIter == 1
-                %
-                % TODO
-                %
-            elseif (outerIter > 1 && outerIter <= CheFSIDG.secondOuterIter)
-                %
-                % TODO
-                %
-            else
-                if CheFSIDG.isUseCompSubspace
-                    %
-                    % TODO
-                    %
-                else
-                    %
-                    % TODO
-                    %
+    timeSolveHMatStart = tic;
+    if DGSolver == "eigs"
+        sizeHMat = scfDG.hamDG.sizeHMat;
+        numEig = scfDG.hamDG.NumStateTotal();
+        if sizeHMat <= 5000
+            % for small matrix, use eig() instead of eigs()
+            % convert cells from each element into a matrix
+            HMat = scfDG.hamDG.HMat;
+            for i = 1 : numElemTotal
+                for j = 1 : numElemTotal
+                    if isempty(HMat{i, j})
+                        numRow = size(HMat{i, i}, 1);
+                        numCol = size(HMat{j, j}, 1);
+                        HMat{i, j} = zeros(numRow, numCol);
+                    end
                 end
             end
-        end
-
-        timeEnd = toc(timeStart);
-        if CheFSI.isUseCompSubspace
-            InfoPrint(0, '\n Total time for Complementary Subspace method is %8f [s] \n\n', timeEnd);
+            HMat = cell2mat(HMat);
+            HMat = (HMat + HMat') / 2;                
+            [eigVec, eigVal] = eig(HMat);
+            eigVal = real(diag(eigVal));
+            eigVal = eigVal(1 : numEig);
+            [eigVal, id] = sort(eigVal);
+            eigVec = eigVec(:, id);
+            scfDG.hamDG.eigVal = eigVal;
         else
-            InfoPrint(0, '\n Total time for diag DG matrix via Chebyshev filtering is %8f [s] \n\n', timeEnd);
+            % for large matrix, store in sparse mode and use eigs()
+            HMat = ElemMatToSparse(scfDG.hamDG);
+            HMat = (HMat + HMat') / 2;        
+            [eigVec, eigVal] = eigs(HMat, numEig, 'smallestreal');
+            scfDG.hamDG.eigVal = diag(eigVal);
         end
-
-        % save data back to scfDG
-        %
-        % TODO
-        %
-
-    elseif DGSolver == "eigs"                 
-        % convert cells from each element into a matrix
-        HMat = scfDG.hamDG.ElemMatToSparse();
-        
-        % TODO: used last result as initial value ?
-        numEig = scfDG.hamDG.NumStateTotal();
-        HMat = (HMat + HMat') / 2;        
-        [eigVec, eigVal] = eigs(HMat, numEig, 'smallestreal');
-
-        scfDG.hamDG.eigVal = diag(eigVal);
 
         % separate matrix of eigenvectors into cells in each element
-        eigVecElem = cell(numElem);
-        for k = 1 : numElem(3)
-            for j = 1 : numElem(2)
-                for i = 1 : numElem(1)
-                    basisIdx = scfDG.hamDG.elemBasisIdx{i, j, k};
-                    eigVecElem{i, j, k} = eigVec(basisIdx, :);
-                end
-            end
+        eigVecElem = cell(numElemTotal, 1);
+        for elemIdx = 1 : numElemTotal
+            basisIdx = scfDG.hamDG.elemBasisIdx{elemIdx};
+            eigVecElem{elemIdx} = eigVec(basisIdx, :);
         end
-        scfDG.hamDG.eigvecCoef = eigVecElem;
-    
-    elseif DGSolver == "PEXSI"
-        %
-        % TODO
-        %
+        scfDG.hamDG.eigvecCoef = eigVecElem;    
     else
-        error('wrong type of DG_Solver')
+        error('wrong type of DG_Solver');
     end  
-        
+    timeSolveHMatEnd = toc(timeSolveHMatStart);
+    InfoPrint(0, ' Total time for solving DG matrix is %8f [s] \n\n', timeSolveHMatEnd);
+
     
     % ********************************************************************
     % Post processing
     % ********************************************************************
-
-    if DGSolver ~= "PEXSI"
-
-    scfDG.Evdw = 0;
     
     % ----------------------------------------------------------------
     % calculate Harris energy
     % ----------------------------------------------------------------
     
-    if DGSolver == "eigs"
-        % compute the occupation rate - specific smearing types dealt
-        % with within this function
-        [scfDG.hamDG.occupationRate, scfDG.fermi] = ...
-            scfDG.CalculateOccupationRate(scfDG.hamDG.eigVal);
-    
-        % compute the Harris energy functional
-        % NOTE: In computing the Harris energy, the density and the
-        % potential must be the INPUT density and potential without ANY
-        % update.
-        scfDG.EfreeHarris = scfDG.CalculateHarrisEnergy();
-    elseif DGSolver == "CheFSI"
-        if CheFSIDG.isUseCompSubspace
-            % calculate Harris energy without computing the occupations
-            scfDG.EfreeHarris = scfDG.CalculateHarrisEnergy();
-        else
-            % compute the occupation rate - specific smearing types dealt
-            % with within this function
-            [scfDG.hamDG.occupationRate, scfDG.fermi] = ...
-                scfDG.CalculateOccupationRate(scfDG.hamDG.eigVal);
-        
-            % compute the Harris energy functional
-            % NOTE: In computing the Harris energy, the density and the
-            % potential must be the INPUT density and potential without ANY
-            % update.
-            scfDG.EfreeHarris = scfDG.CalculateHarrisEnergy();
-        end
-    end
+    % compute the occupation rate - specific smearing types dealt
+    % with within this function
+    [scfDG.hamDG.occupationRate, scfDG.fermi] = ...
+        scfDG.CalculateOccupationRate(scfDG.hamDG.eigVal);
+
+    % compute the Harris energy functional
+    % NOTE: In computing the Harris energy, the density and the
+    % potential must be the INPUT density and potential without ANY
+    % update.
+    scfDG.EfreeHarris = scfDG.CalculateHarrisEnergy();
     
     % -------------------------------------------------------------
     % calculate the new electron density
     % ------------------------------------------------------------- 
     
-    if DGSolver == "eigs"
-        [scfDG.hamDG.density, scfDG.hamDG.densityLGL] = scfDG.hamDG.CalculateDensity();
-    elseif DGSolver == "CheFSI"
-        if CheFSIDG.isUseCompSubspace
-            % density calculation for complementary subspace method
-            
-            %
-            % TODO
-            %       
-        else
-            avgNumALB = scfDG.hamDG.NumBasisTotal() / prod(numElem);  % average no. of ALBs per element
-            numStateTotal = scfDG.hamDG.NumStateTotal();
-            if avgNumALB < numStateTotal
-                %
-                % TODO
-                %
-            else
-                [scfDG.hamDG.density, scfDG.hamDG.densityLGL] = scfDG.hamDG.CalculateDensity();
-            end
-        end
-    end
+    [scfDG.hamDG.density, scfDG.hamDG.densityLGL] = scfDG.hamDG.CalculateDensity();
         
     % -----------------------------------------------------------------
     % Update the output potential, and the KS and second order accurate
@@ -268,33 +191,20 @@ for innerIter = 1 : controlVar.scfInnerMaxIter
     % No external potential
     
     % Compute the new total potential
-    scfDG.hamDG.vtot = scfDG.hamDG.CalculateVtot();
-    
-    
-    % -----------------------------------------------------------
-    % compute the force at every step
-    % -----------------------------------------------------------
-    if esdfParam.userOption.DG.isCalculateForceEachSCF
-        %
-        % TODO
-        %
-    end
-    
+    scfDG.hamDG.vtot = scfDG.hamDG.CalculateVtot();    
     
     % --------------------------------------------------------------
     % Compute the a posterior error estimator at every step
     % FIXME This is not used when intra-element parallelization is used
     % --------------------------------------------------------------
     
-    if esdfParam.userOption.DG.isCalculateAPosterioriEachSCF
+    if scfDG.userOption.isCalculateAPosterioriEachSCF
         %
         % TODO
         %
+        error('Currently option isCalculateAPosterioriEachSCF is not supported !');
     end
 
-    end 
-    % end of post processing for diagonalization method (i.e. DGSolver ~= PEXSI)
-    
 
     % ********************************************************************
     % Mixing
@@ -305,23 +215,17 @@ for innerIter = 1 : controlVar.scfInnerMaxIter
     % --------------------------------------------------------------
     normMixDif = 0;
     normMixOld = 0;
-    for k = 1 : numElem(3)
-        for j = 1 : numElem(2)
-            for i = 1 : numElem(1)
-                if scfDG.mix.mixVariable == "density"
-                    oldVec = scfDG.mix.mixInnerSave{i, j, k};
-                    newVec = scfDG.hamDG.density{i, j, k};
-                    
-                    normMixDif = normMixDif + norm(oldVec - newVec)^2;
-                    normMixOld = normMixOld + norm(oldVec)^2;
-                elseif scfDG.mix.mixVariable == "potential"
-                    oldVec = scfDG.mix.mixInnerSave{i, j, k};
-                    newVec = scfDG.hamDG.vtot{i, j, k};
-                    
-                    normMixDif = normMixDif + norm(oldVec - newVec)^2;
-                    normMixOld = normMixOld + norm(oldVec)^2;
-                end
-            end
+    for elemIdx = 1 : numElemTotal
+        if scfDG.mix.mixVariable == "density"
+            oldVec = scfDG.mix.mixInnerSave{elemIdx};
+            newVec = scfDG.hamDG.density{elemIdx};
+            normMixDif = normMixDif + norm(oldVec - newVec)^2;
+            normMixOld = normMixOld + norm(oldVec)^2;
+        elseif scfDG.mix.mixVariable == "potential"
+            oldVec = scfDG.mix.mixInnerSave{elemIdx};
+            newVec = scfDG.hamDG.vtot{elemIdx};
+            normMixDif = normMixDif + norm(oldVec - newVec)^2;
+            normMixOld = normMixOld + norm(oldVec)^2;
         end
     end
     
@@ -383,28 +287,20 @@ for innerIter = 1 : controlVar.scfInnerMaxIter
     %
     if scfDG.mix.mixVariable == "density"
        sumRho = 0;
-       for k = 1 : numElem(3)
-           for j = 1 : numElem(2)
-               for i = 1 : numElem(1)
-                   density = scfDG.hamDG.density{i, j, k};
-                   
-                   density = max(density, 0);
-                   sumRho = sumRho + sum(density, 'all');
-               end
-           end
+       for elemIdx = 1 : numElemTotal
+           density = scfDG.hamDG.density{elemIdx};
+           
+           density = max(density, 0);
+           sumRho = sumRho + sum(density, 'all');
        end
        sumRho = sumRho * scfDG.domain.Volume() / scfDG.domain.NumGridTotalFine();
        
        rhofac = scfDG.hamDG.numSpin * scfDG.hamDG.numOccupiedState / sumRho;
               
        % normalize the electron density in the global domain
-       for k = 1 : numElem(3)
-           for j = 1 : numElem(2)
-               for i = 1 : numElem(1)
-                   localRho = scfDG.hamDG.density{i, j, k};
-                   scfDG.hamDG.density{i, j, k} = localRho .* rhofac;
-               end
-           end
+       for elemIdx = 1 : numElemTotal
+           localRho = scfDG.hamDG.density{elemIdx};
+           scfDG.hamDG.density{elemIdx} = localRho .* rhofac;
        end
        
        % Update the potential after mixing for the next iteration.

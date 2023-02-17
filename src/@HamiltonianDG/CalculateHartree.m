@@ -6,8 +6,8 @@ function vhart = CalculateHartree(HamDG)
 %
 %    See also HamiltonianDG, HamiltonianDG/CalculateVtot.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
@@ -16,13 +16,11 @@ F = HamDG.fft;
 tempVecLocal = cell(HamDG.numElem);
 
 numElem = HamDG.numElem;
+numElemTotal = prod(numElem);
 
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            tempVecLocal{i, j, k} = HamDG.density{i, j, k} - HamDG.pseudoCharge{i, j, k};
-        end
-    end
+for elemIdx = 1 : numElemTotal
+    tempVecLocal{elemIdx} = ...
+        HamDG.density{elemIdx} - HamDG.pseudoCharge{elemIdx};
 end
 
 % convert tempVec from 3-dim array into 1-dim vector over global domain

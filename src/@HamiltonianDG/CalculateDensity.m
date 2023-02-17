@@ -6,19 +6,20 @@ function [rho, rhoLGL] = CalculateDensity(HamDG)
 %
 %    See also HamiltonianDG, Spinor, SCFDG/CalculateOccupationRate.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
 numElem = HamDG.numElem;
+numElemTotal = prod(numElem);
 grid = HamDG.grid;
 
 occrate = HamDG.occupationRate;
 numSpin = HamDG.numSpin;
 
-rho = cell(numElem);
-rhoLGL = cell(numElem);
+rho = cell(numElemTotal, 1);
+rhoLGL = cell(numElemTotal, 1);
 
 % FIXME: there are other methods not implemented here.
 % Method 3: Compute the electron density locally, and then normalize only
@@ -28,36 +29,35 @@ sumRho = 0;
 sumRhoLGL = 0;
 
 % compute the local density in each element
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            localBasis = HamDG.basisLGL{i, j, k};
-            [~, numBasis] = size(localBasis);
-            
-            % skip the element if there is no basis functions
-            if numBasis == 0
-                continue;
-            end
-            
-            % compute local wavefunction on the LGL grid
-            localCoef = HamDG.eigvecCoef{i, j, k};                        
-            localPsiLGL = localBasis * localCoef;
-            
-            % update the local density
-            occrate = reshape(occrate, 1, []);
-            localRhoLGL = sum(localPsiLGL.^2 .* occrate .* numSpin, 2);
-                        
-            rhoLGL{i, j, k} = localRhoLGL;
-            
-            % interpolate the local density from LGL grid to the uniform
-            % grid
-            localRho = HamDG.InterpLGLToUniform(localRhoLGL);
-            rho{i, j, k} = localRho;
-
-            sumRhoLGL = sumRhoLGL + sum(localRhoLGL .* grid.LGLWeight3D(:), 'all');            
-            sumRho = sumRho + sum(localRho, 'all');
-        end
+for elemIdx = 1 : numElemTotal
+    localBasis = HamDG.basisLGL{elemIdx};
+    [~, numBasis] = size(localBasis);
+    
+    % skip the element if there is no basis functions
+    if numBasis == 0
+        continue;
     end
+    
+    % compute local wavefunction on the LGL grid
+    localCoef = HamDG.eigvecCoef{elemIdx};                        
+    localPsiLGL = localBasis * localCoef;
+    
+    % update the local density
+    occrate = reshape(occrate, 1, []);
+    localRhoLGL = sum(localPsiLGL.^2 .* occrate .* numSpin, 2);
+                
+    rhoLGL{elemIdx} = localRhoLGL;
+    
+    % interpolate the local density from LGL grid to the uniform grid
+    transferMat = grid.LGLToUniformMatFine;
+    numGridOld = grid.numLGLGridElem;
+    numGridNew = grid.numUniformGridElemFine;
+    localRho = InterpByTransferMat(transferMat, numGridOld, ...
+                                   numGridNew, localRhoLGL);
+    rho{elemIdx} = localRho;
+
+    sumRhoLGL = sumRhoLGL + sum(localRhoLGL .* grid.LGLWeight3D(:), 'all');            
+    sumRho = sumRho + sum(localRho, 'all');
 end
 
 end

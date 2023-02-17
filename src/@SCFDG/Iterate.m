@@ -3,29 +3,17 @@ function scfDG = Iterate(scfDG)
 %
 %    See also SCFDG, HamiltonianDG.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
-global esdfParam;
 
 numElem = scfDG.numElem;
+numElemTotal = prod(numElem);
 
 % **********************************************************************
 %                            Preparation                               
 % **********************************************************************
-
-dmElem = Domain();
-for d = 1 : dimDef()
-    dmElem.length(d) = scfDG.domain.length(d) / numElem(d);
-    dmElem.numGrid(d) = scfDG.domain.numGrid(d) / numElem(d);
-    dmElem.numGridFine(d) = scfDG.domain.numGridFine(d) / numElem(d);
-    if numElem(d) > 1
-        dmElem.posStart(d) = dmElem.length(d);
-    else
-        dmElem.posStart(d) = 0;
-    end
-end
 
 hamDG = scfDG.hamDG;
 
@@ -57,7 +45,7 @@ timeTotalStart = tic;
 % Total number of SVD basis functions. Determined at the first outer SCF
 % and is not changed later. This facilitates the reuse of symbolic
 % factorization.
-numSVDBasisTotal = 0;
+numSVDBasisTotal = zeros(numElemTotal, 1);
 
 %
 % FIXME: Assuming spinor has only one component here
@@ -86,179 +74,180 @@ for iter = 1 : controlVar.scfOuterMaxIter
     % Solve the basis functions in the extended element
     % *********************************************************************
     timeBasisStart = tic;
-    for k = 1 : numElem(3)
-        for j = 1 : numElem(2)
-            for i = 1 : numElem(1)
-                eigSol = scfDG.vecEigSol{i, j, k};
-                hamDG = scfDG.hamDG;
-                
-                numLGLGrid = hamDG.grid.numLGLGridElem;
-                numGridElemFine = dmElem.numGridFine;                
-                
-                % skip the interpolation if there is no adaptive local
-                % basis function
-                if eigSol.psi.NumStateTotal() == 0
-                    scfDG.hamDG.basisLGL{i, j, k} = zeros(prod(numLGLGrid), 1);
-                    scfDG.hamDG.basisUniformFine{i, j, k} = zeros(prod(numGridElemFine), 1);
-                    continue;
-                end
-                
-                % -------------------------------------------------------
-                % Solve the basis functions in the extened element
-                % -------------------------------------------------------
-                
-                if controlVar.isPWeigToleranceDynamic
-                    % dynamic strategy to control the tolerance
-                    if iter == 1
-                        % FIXME magic number
-                        eigTolNow = 1e-2;
-                    else
-                        eigTolNow = controlVar.eigTolerance;
-                    end
-                else
-                    % static strategy to control the tolerance
-                    eigTolNow = controlVar.eigTolerance;
-                end
+    
+    hamDG = scfDG.hamDG;
+    basisLGLNew = cell(numElemTotal, 1);
 
-                eigMaxIter = controlVar.eigMaxIter;
-                eigMinTolerance = controlVar.eigMinTolerance;
+    vecEigSol = scfDG.vecEigSol;
+    vecEigSolNew = cell(numElemTotal, 1);
+
+    numLGLGrid = hamDG.grid.numLGLGridElem;
+    numUnusedState = scfDG.numUnusedState;
+
+    PWSolver = scfDG.PWSolver;
+    ChebyPW = scfDG.CheFSIPW;
+    PPCGsbSize = scfDG.PPCGsbSize;
+
+    PeriodicUniformToLGLMat = scfDG.PeriodicUniformToLGLMat;
+    numGridExtElem = vecEigSol{1}.fft.domain.numGrid;
+
+    sqrtLGLWeight3D = sqrt(scfDG.hamDG.grid.LGLWeight3D);
+    sqrtLGLWeight = reshape(sqrtLGLWeight3D, [], 1);
+
+    % NOTE: parfor is used here
+    parfor elemIdx = 1 : numElemTotal
+        eigSol = vecEigSol{elemIdx};
                 
-                numEig = eigSol.psi.NumStateTotal() - scfDG.numUnusedState;
-                
-                % FIXME: multiple choices of solvers for the extended
-                % element, should be given in the input file
-                if scfDG.PWSolver == "CheFSI"
-                    ChebyPW = scfDG.CheFSIPW;
-                    % Use CheFSI or LOBPCG on first step
-                    if iter <= 1
-                        if ChebyPW.firstCycleNum <= 0
-                            InfoPrint(0, ' >>>> Calling LOBPCG for ALB generation on extended element ... \n');
-                            eigSol = LOBPCGSolve(eigSol, numEig, ...
-                                eigMaxIter, eigMinTolerance, eigTolNow);
-                        else
-                            InfoPrint(0, ' >>>> Calling CheFSI with random guess for ALB generation on extended element ... \n');
-                            eigSol = ChebyStepFirst(eigSol, numEig, ...
-                                ChebyPW.firstCycleNum, ChebyPW.firstFilterOrder);
-                        end
-                        InfoPrint(0, '\n');
-                    else
-                        InfoPrint(0, ' >>>> Calling CheFSI with previous ALBs for generation of new ALBs ... \n');
-                        InfoPrint(0, ' >>>> Will carry out %d CheFSI cycles \n', eigMaxIter);
-                        for ChebyIter = 1 : eigMaxIter
-                            InfoPrint(0, '\n >>>> CheFSI for ALBs : Cycle %d of %d ... \n', ChebyIter, eigMaxIter);
-                            eigSol = ChebyStepGeneral(eigSol, numEig,...
-                                ChebyPW.generalFilterOrder);
-                        end
-                        InfoPrint(0, '\n');
-                    end
-                elseif scfDG.PWSolver == "PPCG"
-                    % Use LOBPCG on very first step, i.e., while starting
-                    % from random guess
-                    if iter <= 1
-                        InfoPrint(0, ' >>>> Calling LOBPCG for ALB generation on extended element ... \n');
-                        eigSol = LOBPCGSolve(eigSol, numEig, ...
-                            eigMaxIter, eigMinTolerance, eigTolNow);
-                    else
-                        InfoPrint(0, ' >>>> Calling PPCG with previous ALBs for generation of new ALBs ...\n');
-                        eigSol = PPCGSolve(eigSol, numEig, eigMaxIter);
-                    end
-                elseif scfDG.PWSolver == "LOBPCG"
-                    % Use LOBPCG to diagonalize
+        % skip the interpolation if there is no adaptive local
+        % basis function
+        if eigSol.psi.NumStateTotal() == 0
+            basisLGLNew{elemIdx} = zeros(prod(numLGLGrid), 1);
+            continue;
+        end
+        
+        % -------------------------------------------------------
+        % Solve the basis functions in the extened element
+        % -------------------------------------------------------
+        
+        if controlVar.isPWeigToleranceDynamic
+            % dynamic strategy to control the tolerance
+            if iter == 1
+                % FIXME magic number
+                eigTolNow = 1e-2;
+            else
+                eigTolNow = controlVar.eigTolerance;
+            end
+        else
+            % static strategy to control the tolerance
+            eigTolNow = controlVar.eigTolerance;
+        end
+
+        eigMaxIter = controlVar.eigMaxIter;
+        eigMinTolerance = controlVar.eigMinTolerance;
+        
+        numEig = eigSol.psi.NumStateTotal() - numUnusedState;
+        
+        % FIXME: multiple choices of solvers for the extended element, 
+        % should be given in the input file
+        if PWSolver == "CheFSI"
+            % Use CheFSI or LOBPCG on first step
+            if iter <= 1
+                if ChebyPW.firstCycleNum <= 0
+                    InfoPrint(0, ' >>>> Calling LOBPCG with random guess for ALB generation \n');
                     eigSol = LOBPCGSolve(eigSol, numEig, ...
                         eigMaxIter, eigMinTolerance, eigTolNow);
-                elseif scfDG.PWSolver == "eigs"
-                    % Use eigs() function in MATLAB
-                    eigSol = eigsSolve(eigSol, numEig, eigMaxIter, eigTolNow);
                 else
-                    error('Not supported PWSolver type.');
+                    InfoPrint(0, ' >>>> Calling CheFSI with random guess for ALB generation \n');
+                    eigSol = ChebyStepFirst(eigSol, numEig, ...
+                        ChebyPW.firstCycleNum, ChebyPW.firstFilterOrder);
                 end
-                                
-                
-                % Assuming that wavefun has only 1 component. This should
-                % be changed when spin-polarization is added.
-                                
-                % compute numBasis in the presence of numUnusedState
-                numBasisTotal = eigSol.psi.NumStateTotal() - scfDG.numUnusedState;
-                
-                elemBasis = zeros(prod(numLGLGrid), numBasisTotal);                
-                % NOTE: only one spin component used here
-                for ll = 1 : numBasisTotal
-                    elemBasis(:, ll) = scfDG.InterpPeriodicUniformToLGL(...
-                        eigSol.psi.wavefun(:, ll));
+            else
+                InfoPrint(0, ' >>>> Calling CheFSI with previous ALBs for generation of new ALBs \n');
+                InfoPrint(0, ' >>>> Will carry out %d CheFSI cycles \n', eigMaxIter);
+                for ChebyIter = 1 : eigMaxIter
+                    InfoPrint(0, '\n CheFSI for ALBs : Cycle %d of %d ... \n', ChebyIter, eigMaxIter);
+                    eigSol = ChebyStepGeneral(eigSol, numEig, ...
+                        ChebyPW.generalFilterOrder);
                 end
-
-                
-                % -----------------------------------------------------------
-                % Post processing for the basis functions on the LGL grid.
-                % Perform matrix multiplication and threshold the basis 
-                % functions for the small matrix.
-                %
-                % This method might have lower numerical accuracy, but is
-                % much more scalable than other known options.
-                % ------------------------------------------------------------
-                timeStart = tic;
-                
-                % scale the basis functions by sqrt(weight). This allows
-                % the consequent SVD decomposition of the form 
-                %
-                % X'* W * X
-                %
-                
-                % X(:, i) = sqrt(W) .* X(:, i); 
-                sqrtLGLWeight3D = sqrt(scfDG.hamDG.grid.LGLWeight3D);
-                sqrtLGLWeight = reshape(sqrtLGLWeight3D, [], 1);
-                elemBasis = elemBasis .* repmat(sqrtLGLWeight, 1, numBasisTotal);
-                
-                MMat = elemBasis' * elemBasis;
-                
-                [U, S, ~] = svd(MMat, "econ");
-                S = diag(S);                
-                S = sqrt(S);
-                
-                % Total number of SVD basis functions. NOTE: Determined at
-                % the first outer SCF and is not changed later. This
-                % facilitates the reuse of symbolic factorization.
-                if iter == 1
-                    numSVDBasisTotal = sum( (S ./ S(1)) > controlVar.SVDBasisTolerance);
-                else
-                    % Reuse the value saved in numSVDBasisTotal
-                    InfoPrint(0, 'NOTE: The number of basis functions (after SVD) ');
-                    InfoPrint(0, 'is the same as the number in the first SCF iteration.\n');
-                end
-                
-                % Multiply X <- X*U 
-                % get the first numSVDBasis which are significant
-                U = U(:, 1 : numSVDBasisTotal);
-                S = S(1 : numSVDBasisTotal);
-                U = U ./ S';
-                basis = elemBasis * U;                
-                % Unscale the orthogonal basis functions by sqrt of
-                % intergration weight
-                basis = basis ./ sqrtLGLWeight;
-                
-                scfDG.hamDG.basisLGL{i, j, k} = basis;
-                
-                timeEnd = toc(timeStart);
-                InfoPrint(0, ' Time for SVD of basis = %8f [s]\n', timeEnd);
-                
-                scfDG.vecEigSol{i, j, k} = eigSol;                
             end
+        elseif PWSolver == "PPCG"
+            % Use LOBPCG on very first step, i.e., while starting from 
+            % random guess
+            if iter <= 1
+                % Call LOBPCG for ALB generation on extended element
+                eigSol = LOBPCGSolve(eigSol, numEig, eigMaxIter, ...
+                    eigMinTolerance, eigTolNow);
+            else
+                % Call PPCG with previous ALBs for generation of new ALBs
+                eigSol = PPCGSolve(eigSol, numEig, eigMaxIter, PPCGsbSize);
+            end
+        elseif PWSolver == "LOBPCG"
+            % Use LOBPCG to diagonalize
+            eigSol = LOBPCGSolve(eigSol, numEig, eigMaxIter, ...
+                eigMinTolerance, eigTolNow);
+        elseif PWSolver == "eigs"
+            % Use eigs() function in MATLAB
+            eigSol = eigsSolve(eigSol, numEig, eigMaxIter, eigTolNow);
+        else
+            error('Not supported PWSolver type.');
         end
-    end  % end of ALB calculation 
+                        
+
+        % Assuming that wavefun has only 1 component. This should
+        % be changed when spin-polarization is added.
+                        
+        % compute numBasis in the presence of numUnusedState
+        numBasisTotal = eigSol.psi.NumStateTotal() - numUnusedState;
+        
+        % interpolate from periodic uniform grid to LGL grid
+        elemBasis = zeros(prod(numLGLGrid), numBasisTotal);                
+        % NOTE: only one spin component used here
+        for ll = 1 : numBasisTotal
+            elemBasis(:, ll) = InterpByTransferMat(PeriodicUniformToLGLMat, ...
+                numGridExtElem, numLGLGrid, eigSol.psi.wavefun(:, ll));
+        end
+
+        
+        % -----------------------------------------------------------
+        % Post processing for the basis functions on the LGL grid.
+        % Perform matrix multiplication and threshold the basis 
+        % functions for the small matrix.
+        %
+        % This method might have lower numerical accuracy, but is
+        % much more scalable than other known options.
+        % ------------------------------------------------------------
+        timeStart = tic;
+        
+        % scale the basis functions by sqrt(weight). This allows
+        % the consequent SVD decomposition of the form 
+        %
+        % X'* W * X
+        %
+        
+        % X(:, i) = sqrt(W) .* X(:, i); 
+        elemBasis = elemBasis .* repmat(sqrtLGLWeight, 1, numBasisTotal);
+        
+        MMat = elemBasis' * elemBasis;
+        [U, S, ~] = svd(MMat, "econ");
+        S = diag(S);                
+        S = sqrt(S);
+        
+        % Total number of SVD basis functions. NOTE: Determined at the 
+        % first outer SCF and is not changed later. This facilitates the 
+        % reuse of symbolic factorization.
+        if iter == 1
+            numSVDBasis = sum( (S ./ S(1)) > controlVar.SVDBasisTolerance);
+            numSVDBasisTotal(elemIdx) = numSVDBasis;            
+        else
+            % Reuse the value saved in numSVDBasisTotal
+            numSVDBasis = numSVDBasisTotal(elemIdx);
+            InfoPrint(0, 'NOTE: The number of basis functions (after SVD) ');
+            InfoPrint(0, 'is the same as the number in the first SCF iteration.\n');
+        end
+
+        % Multiply X <- X*U 
+        % get the first numSVDBasis which are significant
+        U = U(:, 1 : numSVDBasis);
+        S = S(1 : numSVDBasis);
+        U = U ./ S';
+        basis = elemBasis * U;                
+        % Unscale the orthogonal basis functions by sqrt of integration weight
+        basis = basis ./ sqrtLGLWeight;
+        
+        basisLGLNew{elemIdx} = basis;
+        vecEigSolNew{elemIdx} = eigSol;                
+        
+        timeEnd = toc(timeStart);
+        InfoPrint(0, ' Time for SVD of basis = %8f [s]\n', timeEnd);
+
+    end  % end of ALB calculation
+
+    scfDG.hamDG.basisLGL = basisLGLNew;
+    scfDG.vecEigSol = vecEigSolNew;
     
     timeBasisEnd = toc(timeBasisStart);
     InfoPrint(0, '\n Time for generating ALB function is %8f [s]\n\n', timeBasisEnd);
-    
-    
-    if scfDG.DGSolver == "CheFSI"
-    % -----------------------------------------------------------------
-    % Routine for re-orienting eigenvectors based on current basis set
-    % -----------------------------------------------------------------
-        %
-        % TODO 
-        %
-    end
-    
+        
     
     % *********************************************************************
     % Inner SCF iteration 
@@ -286,41 +275,21 @@ for iter = 1 : controlVar.scfOuterMaxIter
     
     numAtom = length(scfDG.hamDG.atomList);
     scfDG.efreeDifPerAtom = abs(scfDG.Efree - scfDG.EfreeHarris) / numAtom;
-    
-    % Energy based convergence parameters
-    ionDyn = scfDG.ionDyn;
-    if iter > 1
-        ionDyn.MDscfEbandOld = ionDyn.MDscfEband;
-        ionDyn.MDscfEtotOld = ionDyn.MDscfEtot;      
-    else
-        ionDyn.MDscfEbandOld = 0.0;                
-        ionDyn.MDscfEtotOld = 0.0;
-    end
-    
-    ionDyn.MDscfEband = scfDG.Ekin;
-    ionDyn.MDscfEbandDiff = abs(ionDyn.MDscfEbandOld - ionDyn.MDscfEband) / numAtom;
-    ionDyn.MDscfEtot = scfDG.Etot;
-    ionDyn.MDscfEtotDiff = abs(ionDyn.MDscfEtotOld - ionDyn.MDscfEtot) / numAtom;
-    scfDG.ionDyn = ionDyn;
-    
+        
     % Compute the error of the mixing variable
     normMixDif = 0;
     normMixOld = 0;
-    for k = 1 : numElem(3)
-        for j = 1 : numElem(2)
-            for i = 1 : numElem(1)
-                if scfDG.mix.mixVariable == "density"
-                    oldVec = scfDG.mix.mixOuterSave{i, j, k};
-                    newVec = scfDG.hamDG.density{i, j, k};
-                    normMixDif = normMixDif + norm( oldVec - newVec )^2;
-                    normMixOld = normMixOld + norm( oldVec ).^2;
-                elseif scfDG.mix.mixVariable == "potential"
-                    oldVec = scfDG.mix.mixOuterSave{i, j, k};
-                    newVec = scfDG.hamDG.vtot{i, j, k};
-                    normMixDif = normMixDif + norm( oldVec - newVec )^2;
-                    normMixOld = normMixOld + norm( oldVec )^2;
-                end
-            end
+    for elemIdx = 1 : numElemTotal
+        if scfDG.mix.mixVariable == "density"
+            oldVec = scfDG.mix.mixOuterSave{elemIdx};
+            newVec = scfDG.hamDG.density{elemIdx};
+            normMixDif = normMixDif + norm( oldVec - newVec )^2;
+            normMixOld = normMixOld + norm( oldVec ).^2;
+        elseif scfDG.mix.mixVariable == "potential"
+            oldVec = scfDG.mix.mixOuterSave{elemIdx};
+            newVec = scfDG.hamDG.vtot{elemIdx};
+            normMixDif = normMixDif + norm( oldVec - newVec )^2;
+            normMixOld = normMixOld + norm( oldVec )^2;
         end
     end
     
@@ -331,35 +300,19 @@ for iter = 1 : controlVar.scfOuterMaxIter
     
     InfoPrint([0, 1], 'outer SCF iteration # %d \n', iter);
     InfoPrint([0, 1], "outerSCF: EfreeHarris                 = ", scfDG.EfreeHarris); 
-    InfoPrint([0, 1], "outerSCF: Efree                       = ", scfDG.Efree); 
+    InfoPrint([0, 1], "outerSCF: Efree                       = ", scfDG.Efree);
+    InfoPrint([0, 1], "outerSCF: Etot                        = ", scfDG.Etot);
     InfoPrint([0, 1], "outerSCF: norm(out-in)/norm(in) = ", scfDG.scfOuterNorm); 
     InfoPrint([0, 1], "outerSCF: Efree diff per atom   = ", scfDG.efreeDifPerAtom); 
-
-    if scfDG.ionDyn.isUseEnergySCFconvergence
-        InfoPrint([0, 1], "outerSCF: MD SCF Etot diff (per atom)           = ", scfDG.ionDyn.MDscfEtotDiff); 
-        InfoPrint([0, 1], "outerSCF: MD SCF Eband diff (per atom)          = ", scfDG.ionDyn.MDscfEbandDiff); 
-    end
-
     
     % Check for convergence
-    if scfDG.ionDyn.isUseEnergySCFconvergence == 0
-        if iter >= 2 ...
-                && scfDG.scfOuterNorm < controlVar.scfOuterTolerance ...
-                && scfDG.efreeDifPerAtom < controlVar.scfOuterEnergyTolerance
-            % converged %
-            InfoPrint([0, 1], ' Outer SCF is converged in %d steps ! \n', iter);
-            isSCFConverged = true;
-        end
-    else
-        if iter >= 2 ...
-                && scfDG.ionDyn.MDscfEtotDiff < scfDG.ionDyn.MDscfEtotDiffTol ...
-                && scfDG.ionDyn.MDscfEbandDiff < scfDG.ionDyn.MDscfEbandDiffTol
-            % converged via energy criterion
-            InfoPrint([0, 1], ' Outer SCF is converged via energy condition in %d step !\n', iter);
-            isSCFConverged = true;
-        end
+    if iter >= 2 ...
+            && scfDG.scfOuterNorm < controlVar.scfOuterTolerance ...
+            && scfDG.efreeDifPerAtom < controlVar.scfOuterEnergyTolerance
+        % converged %
+        InfoPrint([0, 1], ' Outer SCF is converged in %d steps ! \n', iter);
+        isSCFConverged = true;
     end
-
 
     % Potential mixing for the outer SCF iteration. or no mixing at all anymore?
     % It seems that no mixing is the best.
@@ -373,9 +326,6 @@ end  % -----------------  end of for iter -------------------------------
 timeTotalEnd = toc(timeTotalStart);
 
 InfoPrint([0, 1], '\nTotal time for all SCF iterations = %8f [s]\n', timeTotalEnd);
-if scfDG.ionDyn.ionDynIter >= 1
-    InfoPrint(0, ' Ion dynamics iteration %d : ', scfDG.ionDyn.scfdg_ion_dyn_iter);
-end
 
 if isSCFConverged
     InfoPrint(0, ' Total number of outer SCF steps for SCF convergence = %d \n', iter-1);
@@ -389,28 +339,14 @@ end
 % *********************************************************************
 
 timeForceStart = tic;
-if scfDG.DGSolver == "eigs"
-    InfoPrint(0, '\n Computing forces using eigenvectors ...\n');
-    scfDG.hamDG = scfDG.hamDG.CalculateForce();
-elseif scfDG.DGSolver == "CheFSI"
-    if ~scfDG.CheFSIDG.isUseCompSubspace
-        InfoPrint(0, '\n Computing forces using eigenvectors ...\n');
-        scfDG.hamDG = scfDG.hamDG.CalculateForce();
-    else
-        %
-        % TODO
-        %
-    end
-elseif scfDG.DGSolver == "PEXSI"
-    % 
-    % TODO
-    %
-end
+InfoPrint(0, '\n Computing forces using eigenvectors ...\n');
+scfDG.hamDG = scfDG.hamDG.CalculateForce();
 timeForceEnd = toc(timeForceStart);
 InfoPrint(0, ' Time for computing the force is %8f [s] \n\n', timeForceEnd);
 
 
 % Calculate the VDW energy
+scfDG.Evdw = 0;
 if scfDG.VDWType == "DFT-D2"
     [scfDG.Evdw, scfDG.forceVdw] = CalculateVDW(scfDG.hamDG, scfDG.VDWType);
     % update energy
@@ -449,10 +385,6 @@ InfoPrint([0, 1], '\n  Convergence information : \n');
 InfoPrint([0, 1], "! norm(out-in)/norm(in) = ",  scfDG.scfOuterNorm); 
 InfoPrint([0, 1], "! Efree diff per atom   = ",  scfDG.efreeDifPerAtom, "[au]"); 
 
-if scfDG.ionDyn.isUseEnergySCFconvergence
-    InfoPrint([0, 1], "! MD SCF Etot diff (per atom)  = ",  scfDG.ionDyn.MDscfEtotDiff, "[au]"); 
-    InfoPrint([0, 1], "! MD SCF Eband diff (per atom) = ",  scfDG.ionDyn.MDscfEbandDiff, "[au]"); 
-end    
    
 %
 % Print out the force
@@ -476,36 +408,105 @@ InfoPrint([0, 1], '\n');
 % basis function, etc as output file.
 %
 
-% output structure information as file
-if esdfParam.userOption.general.isOutputStructInfo
+% output atomic structure information as file
+if scfDG.userOption.isOutputAtomStruct
     domain = scfDG.domain;
     atomList = scfDG.hamDG.atomList;
-    save('STRUCTURE.mat', 'domain', 'atomList');
+    save(scfDG.dataFileIO.atomStructDG, 'domain', 'atomList');
 end
 
-% output restarting information as file
+% output data as files
+% NOTE: data over each element will be stored in different files with the 
+% same prefix from scfDG.dataFileIO
 
 % output the density on the uniform fine grid
-if esdfParam.userOption.general.isOutputDensity
-    uniformGridElemFine = scfDG.hamDG.grid.uniformGridElemFine;  % cell
+if scfDG.userOption.isOutputDensity
+    uniformGridFine = scfDG.hamDG.grid.uniformGridElemFine;  % cell
     density = scfDG.hamDG.density;  % cell
-    save(scfDG.restart.DensityFileName, 'uniformGridElemFine', 'density');
+    fileNamePrefix = scfDG.dataFileIO.densityDG;
+    for elemIdx = 1 : numElemTotal
+        fileName = fileNamePrefix + "_" + num2str(elemIdx) + ".mat";
+        densityElem = density{elemIdx};
+        uniformGridFineElem = uniformGridFine{elemIdx};
+        save(fileName, 'elemIdx', 'uniformGridFineElem', 'densityElem');
+    end
+end
+
+% output potential on the global domain with uniform fine grid
+if scfDG.userOption.isOutputPotential    
+    uniformGridFine = scfDG.hamDG.grid.uniformGridElemFine;  % cell
+    vtot = scfDG.hamDG.vtot;  % cell
+    fileNamePrefix = scfDG.dataFileIO.potentialDG;
+    for elemIdx = 1 : numElemTotal
+        fileName = fileNamePrefix + "_" + num2str(elemIdx) + ".mat";
+        vtotElem = vtot{elemIdx};
+        uniformGridFineElem = uniformGridFine{elemIdx};
+        save(fileName, 'elemIdx', 'uniformGridFineElem', 'vtotElem');
+    end    
 end
 
 % output wavefunction in the extended element
-if esdfParam.userOption.DG.isOutputWfnExtElem
-    gridPosExtElem = cell(numElem);
-    wfnExtElem = cell(numElem);
-    for k = 1 : numElem(3)
-        for j = 1 : numElem(2)
-            for i = 1 : numElem(1)
-                dm = scfDG.vecEigSol{i, j, k}.hamKS.domain;
-                gridPosExtElem{i, j, k} = UniformMesh(dm);
-                wfnExtElem{i, j, k} = scfDG.vecEigSol{i, j, k}.psi.wavefun;
-            end
+if scfDG.userOption.isOutputWfnExtElem
+    fileNamePrefix = scfDG.dataFileIO.wfnExtElem;
+    for elemIdx = 1 : numElemTotal
+        eigSol = scfDG.vecEigSol{elemIdx};
+        dm = eigSol.hamKS.domain;
+        gridposExtElem = UniformMesh(dm);
+        wfnExtElem = eigSol.psi.wavefun;
+        fileName = fileNamePrefix + "_" + num2str(elemIdx) + ".mat";
+        save(fileName, 'elemIdx', 'gridposExtElem', 'wfnExtElem');
+    end 
+end
+
+% output potential in the extended element
+if scfDG.userOption.isOutputPotExtElem
+    fileNamePrefix = scfDG.dataFileIO.potExtElem;
+    for elemIdx = 1 : numElemTotal
+        eigSol = scfDG.vecEigSol{elemIdx};
+        dm = eigSol.hamKS.domain;
+        gridposExtElemFine = UniformMeshFine(dm);
+        vtotExtElem = eigSol.hamKS.vtot;
+        fileName = fileNamePrefix + "_" + num2str(elemIdx) + ".mat";
+        save(fileName, 'elemIdx', 'gridposExtElemFine', 'vtotExtElem');
+    end 
+end
+
+% output adaptive local basis (ALB) over uniform fine grid in each element
+if scfDG.userOption.isOutputALBElemUniform
+    hamDG = scfDG.hamDG;
+    uniformGridFine = hamDG.grid.uniformGridElemFine;  % cell
+
+    transferMat = hamDG.grid.LGLToUniformMatFine;    
+    numGridOld = hamDG.grid.numLGLGridElem;
+    numGridNew = hamDG.grid.numUniformGridElemFine;
+
+    fileNamePrefix = scfDG.dataFileIO.albElemUniform;
+    for elemIdx = 1 : numElemTotal
+        basisLGL = hamDG.basisLGL{elemIdx};
+        numBasis = size(basisLGL, 2);
+        basisUniformFine = zeros(prod(numGridNew), numBasis);
+        % interpolation from LGL grid to uniform fine grid
+        for g = 1 : numBasis
+            basisUniformFine(:, g) = InterpByTransferMat(transferMat, ...
+                numGridOld, numGridNew, basisLGL(:, g));
         end
+        uniformGridFineElem = uniformGridFine{elemIdx};
+
+        fileName = fileNamePrefix + "_" + num2str(elemIdx) + ".mat";
+        save(fileName, 'elemIdx', 'uniformGridFineElem', 'basisUniformFine');
     end
-    save(scfDG.restart.WfnExtElemFileName, 'gridPosExtElem', 'wfnExtElem');
+end
+
+% output adaptive local basis (ALB) over LGL grid in each element
+if scfDG.userOption.isOutputALBElemLGL    
+    hamDG = scfDG.hamDG;
+    fileNamePrefix = scfDG.dataFileIO.albElemLGL;
+    for elemIdx = 1 : numElemTotal
+        gridposElemLGL = hamDG.grid.LGLGridElem{elemIdx};
+        albElemLGL = hamDG.basisLGL{elemIdx}; 
+        fileName = fileNamePrefix + "_" + num2str(elemIdx) + ".mat";
+        save(fileName, 'elemIdx', 'gridposElemLGL', 'albElemLGL');
+    end 
 end
 
 

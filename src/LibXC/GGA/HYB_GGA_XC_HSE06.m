@@ -4,8 +4,8 @@ function [epsxc, vxc1, vxc2] = HYB_GGA_XC_HSE06(rho, grho2)
 %
 %    See also xcRef, xc_gga_exc_vxc.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 % NOTE: hse06 = sla + pw + hse + pbc

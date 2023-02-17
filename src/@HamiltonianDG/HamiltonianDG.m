@@ -2,13 +2,13 @@ classdef HamiltonianDG
     % HAMILTONIANDG Main class of DGDFT for storing and assembling the 
     %    DG matrix.
     %
-    %    H = HamiltonianDG() returns a HamiltonianDG object which was 
-    %    initialized by the global variable esdfParam. 
+    %    H = HamiltonianDG(esdfParam) returns a HamiltonianDG object which 
+    %    is initialized by the ESDFInputParam object esdfParam. 
     %
-    %    See also Domain, Atom, Fourier, PeriodTable.
+    %    See also Domain, Atom, Fourier, PeriodTable, ESDFInputParam.
 
-    %  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-    %                     Fudan University
+    %  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+    %                          Fudan University
     %  This file is distributed under the terms of the MIT License.    
     
     properties (SetAccess = public)
@@ -17,6 +17,7 @@ classdef HamiltonianDG
         grid
         atomList
         fft
+        ecutWavefun
         
         numElem
         numSpin
@@ -44,14 +45,11 @@ classdef HamiltonianDG
         
         XCType
         
-        basisUniformFine
         basisLGL
         elemBasisIdx  % index of a basis in total basis function array
         elemBasisInvIdx  % element index a basis belonging to
         HMat  % DG Hamiltonian matrix, stores in cell
         sizeHMat
-        sparseHMat  % HMat stores in sparse matrix
-        hasConvertSparse  % whether HMat save in sparseHMat 
         penaltyAlpha
         
         eigVal
@@ -69,25 +67,25 @@ classdef HamiltonianDG
                 'uniformGridElem', [], ...
                 'uniformGridElemFine', [], ...
                 'numUniformGridElem', [], ...
-                'numUniforomGridElemFine', [], ...
+                'numUniformGridElemFine', [], ...
                 ...
-                'numLGLGridElem', [], ...
                 'LGLGridElem', [], ...
+                'numLGLGridElem', [], ...
                 'LGLWeight1D', [], ...
                 'LGLWeight2D', [], ...
                 'LGLWeight3D', [], ...
                 'DMat', [], ... % differentiation matrix on the LGL grid
                 ...
                 'LGLToUniformMat', [], ...
-                'LGLToUniformMatFine', [], ...
-                'LGLToUniformGaussMatFine', [] ...
+                'LGLToUniformMatFine', [] ...
                 );
                             
             switch (nargin)
-                case 0
+                case 1
+                    esdfParam = varargin{1};
                     H.domain = Domain();
                     H.domainElem = Domain();
-                    H = Setup(H);
+                    H = Setup(H, esdfParam);
                     return;
                 otherwise
                     error('Wrong number of arguments');
@@ -100,23 +98,11 @@ classdef HamiltonianDG
         function val = NumStateTotal(HamDG)
             val = HamDG.numExtraState + HamDG.numOccupiedState;
         end
-        
-        function rhoUniform = InterpLGLToUniform(HamDG, rhoLGL)
-            % transform data over LGL grid to uniform fine grid
-            rhoUniform = InterpLGLToUniform(...
-                HamDG.grid.LGLToUniformMatFine, ...
-                HamDG.grid.numLGLGridElem, ...
-                HamDG.grid.numUniformGridElemFine, ...
-                rhoLGL);
-        end
-        
+                
         function sparseH = ElemMatToSparse(HamDG)
             % transform an element-wise matrix into a sparse matrix
-            % note: here does not change hasConvertSparse
             sparseH = ElemMatToSparse(...
-                HamDG.HMat,  ...
-                HamDG.numElem, ...
-                HamDG.sizeHMat);
+                        HamDG.HMat, HamDG.numElem, HamDG.sizeHMat);
             sparseH = (sparseH + sparseH') / 2;
         end
 

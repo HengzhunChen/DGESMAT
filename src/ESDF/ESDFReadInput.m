@@ -1,16 +1,15 @@
-function ESDFReadInput(inputFile)
+function esdfParam = ESDFReadInput(inputFile)
 % ESDFREADINPUT Input interface. Initialize ESDF parameters by inputFile
-%               and default values, save data into global variable
-%               esdfParam.
+%    and default values, save data into ESDFInputParam object esdfParam.
 %
 %    See also ESDFInputParam, esdf_get, esdf_block.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
-global esdfParam;
+esdfParam =  ESDFInputParam();
 
 % initialize and check parameters in inputFile
 esdf_init(inputFile);
@@ -23,28 +22,26 @@ esdf_init(inputFile);
 % general options
 esdfParam.userOption.general.isUseAtomDensity        = esdf_get( "Use_Atom_Density", 0 );
 esdfParam.userOption.general.isUseVLocal             = esdf_get( "Use_VLocal", 0 );
+esdfParam.userOption.general.isPWeigTolDynamic       = esdf_get( "Eig_Tolerance_Dynamic", 0 );
 esdfParam.userOption.general.isRestartDensity        = esdf_get( "Restart_Density", 0 );
 esdfParam.userOption.general.isRestartWfn            = esdf_get( "Restart_Wfn", 0 );
-esdfParam.userOption.general.isOutputDensity         = esdf_get( "Output_Density", 0 );
-esdfParam.userOption.general.isOutputStructInfo      = esdf_get( "Output_Struct_Info", 0 );
-esdfParam.userOption.general.isPWeigTolDynamic       = esdf_get( "Eig_Tolerance_Dynamic", 0 );
 
 % PW
-esdfParam.userOption.PW.isOutputWfn                  = esdf_get( "Output_Wfn", 0 );
+esdfParam.userOption.PW.isOutputWavefun              = esdf_get( "Output_Wavefun_PW", 0 );
+esdfParam.userOption.PW.isOutputDensity              = esdf_get( "Output_Density_PW", 0 );
+esdfParam.userOption.PW.isOutputPotential            = esdf_get( "Output_Potential_PW", 0 );
+esdfParam.userOption.PW.isOutputAtomStruct           = esdf_get( "Output_Atom_Struct_PW", 0 );
 
 % DG
+esdfParam.userOption.DG.isOutputDensity               = esdf_get( "Output_Density_DG", 0 );
+esdfParam.userOption.DG.isOutputPotential             = esdf_get( "Output_Potential_DG", 0 );
+esdfParam.userOption.DG.isOutputAtomStruct            = esdf_get( "Output_Atom_Struct_DG", 0 );
+esdfParam.userOption.DG.isOutputALBElemUniform        = esdf_get( "Output_ALB_Elem_Uniform", 0 );
+esdfParam.userOption.DG.isOutputALBElemLGL            = esdf_get( "Output_ALB_Elem_LGL", 0 );
 esdfParam.userOption.DG.isOutputWfnExtElem            = esdf_get( "Output_Wfn_ExtElem", 0 );
-esdfParam.userOption.DG.isPotentialBarrier            = esdf_get( "Potential_Barrier",  0 );
+esdfParam.userOption.DG.isOutputPotExtElem            = esdf_get( "Output_Pot_ExtElem", 0 );
 esdfParam.userOption.DG.isPeriodizePotential          = esdf_get( "Periodize_Potential", 0 );
 esdfParam.userOption.DG.isCalculateAPosterioriEachSCF = esdf_get( "Calculate_APosteriori_Each_SCF", 0 );
-esdfParam.userOption.DG.isCalculateForceEachSCF       = esdf_get( "Calculate_Force_Each_SCF", 0 );
-
-% ionDyn
-esdfParam.userOption.ionDyn.isRestartPosition     = esdf_get( "Restart_Position", 0 );
-esdfParam.userOption.ionDyn.isRestartVelocity     = esdf_get( "Restart_Velocity", 0 );
-esdfParam.userOption.ionDyn.isOutputPosition      = esdf_get( "Output_Position", 1 );
-esdfParam.userOption.ionDyn.isOutputVelocity      = esdf_get( "Output_Velocity", 1 );
-esdfParam.userOption.ionDyn.isOutputXYZ           = esdf_get( "Output_XYZ", 1 );
 
 
 
@@ -141,19 +138,6 @@ for i = 1 : esdfParam.basic.numAtomType
     end
 end
 
-% Read position from lastPos.out into esdfParam.atomList[i].pos
-if esdfParam.userOption.ionDyn.isRestartPosition
-    InfoPrint([0, 1], '\nRead in atomic position from lastPos.out, \n');
-    InfoPrint([0, 1], 'override the atomic positions read from the input file.\n');
-    % read atom position from lastPos.out
-    inFid = fopen('lastPos.out', 'r');
-    atomposRead = fscanf(inFid, '%f');
-    for i = 1 : length(esdfParam.basic.atomList)-1
-        esdfParam.basic.atomList(i).pos = atomposRead(3*i: 3*i+3);
-    end
-    fclose(inFid);
-end
-
         
 % ------------------------  UPF_File  -----------------------------------
 
@@ -167,6 +151,10 @@ else
 end
 
 % -------------------------- Mixing -------------------------------------
+
+% For metallic systems or small gapped semiconductors, mixStepLength is 
+% often needed to be smaller than 0.1.  In such case, a better 
+% preconditioner such as Kerker preconditioner can be helpful.
 
 esdfParam.basic.mixMaxDim = esdf_get('Mixing_MaxDim', 9);
 
@@ -184,28 +172,32 @@ end
 
 esdfParam.basic.mixStepLength = esdf_get( "Mixing_StepLength", 0.8 );
 
-% For metallic systems or small gapped semiconductors, mixStepLength is 
-% often needed to be smaller than 0.1.  In such case, a better 
-% preconditioner such as Kerker preconditioner can be helpful.
 
 % ------------------------  Others -------------------------------------
 
-esdfParam.basic.ecutWavefunction     = esdf_get( "Ecut_Wavefunction", 40.0 );
-esdfParam.basic.densityGridFactor    = esdf_get( "Density_Grid_Factor", 2.0 );
+esdfParam.basic.ecutWavefunction = esdf_get( "Ecut_Wavefunction", 40.0 );
+esdfParam.basic.densityGridFactor = esdf_get( "Density_Grid_Factor", 2.0 );
 
 temperature = esdf_get("Temperature", 300.0);
 esdfParam.basic.Tbeta = au2KDef() / temperature;
 
+
+% Number of empty states for finite temperature calculation.
+% This parameter must be larger than 0 for small gapped systems or
+% relatively high temperature calculations.
 esdfParam.basic.numExtraState  = esdf_get( "Extra_States",  0 );
+
+% Some states for the planewave solver are unused in order to accelerate 
+% the convergence rate of the eigensolver.
 esdfParam.basic.numUnusedState = esdf_get( "Unused_States",  0 );
+
 esdfParam.basic.extraElectron  = esdf_get( "Extra_Electron", 0 );
 
-
-esdfParam.basic.pseudoType      = esdf_get("Pseudo_Type", "HGH"); 
-esdfParam.basic.PWSolver        = esdf_get("PW_Solver", "LOBPCG"); 
-esdfParam.basic.XCType          = esdf_get("XC_Type", "XC_LDA_XC_TETER93"); 
-esdfParam.basic.VDWType         = esdf_get("VDW_Type", "None");
-esdfParam.basic.smearingScheme  = esdf_get("Smearing_Scheme", "FD");
+esdfParam.basic.pseudoType     = esdf_get("Pseudo_Type", "HGH"); 
+esdfParam.basic.PWSolver       = esdf_get("PW_Solver", "LOBPCG"); 
+esdfParam.basic.XCType         = esdf_get("XC_Type", "XC_LDA_XC_TETER93"); 
+esdfParam.basic.VDWType        = esdf_get("VDW_Type", "None");
+esdfParam.basic.smearingScheme = esdf_get("Smearing_Scheme", "FD");
 
 
 
@@ -238,10 +230,10 @@ esdfParam.control.SVDBasisTolerance    = esdf_get( "SVD_Basis_Tolerance", 1e-6 )
 esdfParam.PW.PPCGsbSize = esdf_get( "PPCG_sbSize", 1 );
 
 % Parameters related to Chebyshev Filtering in PWDFT
-esdfParam.PW.CheFSI.firstFilterOrder   = esdf_get("First_SCF_PWDFT_ChebyFilterOrder", 40 );
-esdfParam.PW.CheFSI.firstCycleNum      = esdf_get("First_SCF_PWDFT_ChebyCycleNum", 5 );
-esdfParam.PW.CheFSI.generalFilterOrder = esdf_get("General_SCF_PWDFT_ChebyFilterOrder", 35 );
-esdfParam.PW.CheFSI.isApplyWfnEcut     = esdf_get("PWDFT_Cheby_use_wfn_ecut_filt", 1 );
+esdfParam.PW.CheFSI.firstFilterOrder   = esdf_get( "First_SCF_PWDFT_ChebyFilterOrder", 40 );
+esdfParam.PW.CheFSI.firstCycleNum      = esdf_get( "First_SCF_PWDFT_ChebyCycleNum", 5 );
+esdfParam.PW.CheFSI.generalFilterOrder = esdf_get( "General_SCF_PWDFT_ChebyFilterOrder", 35 );
+esdfParam.PW.CheFSI.isApplyWfnEcut     = esdf_get( "PWDFT_Cheby_use_wfn_ecut_filt", 1 );
 
 
 
@@ -264,48 +256,51 @@ end
 if esdfParam.isDGDFT
     % Instead of grid size, use ecut to determine the number of grid points
     % in the local LGL domain.
-    % The LGL grid facotr does not need to be an integer
+    % The LGL grid factor does not need to be an integer
     esdfParam.DG.LGLGridFactor     = esdf_get( "LGL_Grid_Factor", 2.0 );
-    esdfParam.DG.GaussInterpFactor = esdf_get( "Gauss_Interp_Factor", 4.0 );
-    esdfParam.DG.GaussSigma        = esdf_get( "Gauss_Sigma", 0.001 );
+
     esdfParam.DG.penaltyAlpha      = esdf_get( "Penalty_Alpha", 20.0 );
     
     % get the number of basis functions per elements
     % NOTE: ALB_Num_Element overwrites the parameter numALB later
     numALB = esdf_get("ALB_Num", 4);
-    [block_data, sizeALBElem] = esdf_block("ALB_Num_Element");
+    [block_data, nlines] = esdf_block("ALB_Num_Element");
     
     numElem = esdfParam.DG.numElem;
-    if sizeALBElem ~= 0
+    numElemTotal = prod(numElem);
+    if nlines ~= 0
         % use different number of ALB functions for each element
-        if sizeALBElem ~= prod(numElem)
-            error('The size of the number of ALB does not match the number of elements.');
-        end
-        for k = 1 : numElem(3)
-            for j = 1 : numElem(2)
-                for i = 1 : numElem(1)
-                    esdfParam.DG.numALBElem(i, j, k) = sscanf( block_data( ... 
-                    i + (j-1)*numElem(1) + (k-1)*numElem(1)*numElem(2), '%d' ));
-                end
+        esdfParam.DG.numALBElem = zeros(numElemTotal, 1);
+        elemIdx = 0;
+        for i = 1 : nlines
+            data = sscanf(block_data(i), '%d');
+            for j = 1 : length(data)
+                elemIdx = elemIdx + 1;
+                esdfParam.DG.numALBElem(elemIdx) = data(j);
             end
         end
+        if elemIdx ~= numElemTotal
+            error('The size of the number of ALB does not match the number of elements.');
+        end            
     else
         % use the same number of ALB functions for each element.
-        esdfParam.DG.numALBElem = numALB * ones(numElem(1), numElem(2), numElem(3));
+        esdfParam.DG.numALBElem = numALB * ones(numElemTotal, 1);
     end
+
+    % buffer size is number of elements in the buffer region along +(-) x(y,z) 
+    % direction. Number of elements in extended element total will be 
+    %    (2 * bufferSize + 1) ^ d
+    % where d is number of dimensions that have been partitioned.    
+    esdfParam.DG.bufferSize = esdf_get( "buffer_size", 1 );
     
-    % Modification of the potential in the extended element
-    % FIXME the potential barrier is now obsolete.
-    esdfParam.DG.potentialBarrierW    = esdf_get( "Potential_Barrier_W", 2.0 );
-    esdfParam.DG.potentialBarrierS    = esdf_get( "Potential_Barrier_S", 0.0 );
-    esdfParam.DG.potentialBarrierR    = esdf_get( "Potential_Barrier_R", 5.0 );
-    
+    % Modification of the potential in the extended element    
     % Periodization of the external potential
     esdfParam.DG.distancePeriodize = [0, 0, 0];
     if esdfParam.userOption.DG.isPeriodizePotential
         [block_data, nlines] = esdf_block("Distance_Periodize");
         if nlines ~= 0
-            esdfParam.DG.distancePeriodize = sscanf(block_data, '%f');
+            distancePeriodize = sscanf(block_data, '%f');
+            esdfParam.DG.distancePeriodize = reshape(distancePeriodize, 1, []);
         else
             % default value for DistancePeriodize
             for d = 1 : dimDef()
@@ -313,13 +308,11 @@ if esdfParam.isDGDFT
                     esdfParam.DG.distancePeriodize(d) = 0;
                 else
                     esdfParam.DG.distancePeriodize(d) = ... 
-                        esdfParam.basic.domain.length(d) / esdfParam.DG.numElem(d) * 0.5;
+                        esdfParam.basic.domain.length(d) / numElem(d) * 0.5;
                 end
             end
         end
-    end
-    % end of modify the potential
-    
+    end  % end of modify the potential
     
     esdfParam.basic.DGSolver = esdf_get("DG_Solver", "eigs"); 
 
@@ -346,157 +339,64 @@ end
 % TODO Later the number of grid points can be improved to only contain the
 % factor of 2, 3, and 5.
 
-elemLength = esdfParam.basic.domain.length ./ esdfParam.DG.numElem;
+numElem = esdfParam.DG.numElem;
+elemLength = esdfParam.basic.domain.length ./ numElem;
+ecutWavefunction = esdfParam.basic.ecutWavefunction;
+densityGridFactor = esdfParam.basic.densityGridFactor; 
 
 % the number of grid is assumed to be at least an even number
-esdfParam.DG.numGridWavefunctionElem = ceil( ...
-    sqrt(2 * esdfParam.basic.ecutWavefunction) .* elemLength ./ pi ./ 2 ) .* 2;
-esdfParam.DG.numGridDensityElem = ceil( ...
-    esdfParam.DG.numGridWavefunctionElem .* esdfParam.basic.densityGridFactor / 2 ) .* 2;
+numGridWavefunctionElem = ceil( ...
+    sqrt(2 * ecutWavefunction) .* elemLength ./ pi ./ 2 ) .* 2;
+numGridDensityElem = ceil( ...
+    numGridWavefunctionElem .* densityGridFactor / 2 ) .* 2;
+
+esdfParam.DG.numGridWavefunctionElem = numGridWavefunctionElem;
+esdfParam.DG.numGridDensityElem = numGridDensityElem;
 
 % coarse grid
-esdfParam.basic.domain.numGrid = esdfParam.DG.numGridWavefunctionElem .* esdfParam.DG.numElem;
+esdfParam.basic.domain.numGrid = numGridWavefunctionElem .* numElem;
 % fine grid
-esdfParam.basic.domain.numGridFine = esdfParam.DG.numGridDensityElem .* esdfParam.DG.numElem;
+esdfParam.basic.domain.numGridFine = numGridDensityElem .* numElem;
 
 if esdfParam.isDGDFT
-    esdfParam.DG.numGridLGL = ceil( esdfParam.DG.numGridWavefunctionElem * esdfParam.DG.LGLGridFactor ); 
+    esdfParam.DG.numGridLGL = ceil( ...
+        numGridWavefunctionElem * esdfParam.DG.LGLGridFactor ); 
 end
 
 
-% ----------------------- CheFSI DG parameters ---------------------------
 
+% ************************************************************************
+%                        IO Data File Names
+% ************************************************************************
+
+% PWDFT output
+esdfParam.dataFileIO.wavefunPW    = esdf_get( "Wavefun_Output_File_PW", "WAVEFUN_PW.mat" );
+esdfParam.dataFileIO.densityPW    = esdf_get( "Density_Output_File_PW", "DENSITY_PW.mat" );
+esdfParam.dataFileIO.potentialPW  = esdf_get( "Potential_Output_File_PW", "POTENTIAL_PW.mat" );
+esdfParam.dataFileIO.atomStructPW = esdf_get( "Atom_Struct_Output_File_PW", "ATOMSTRUCT_PW.mat" );
+
+% DGDFT output
+% NOTE: The following input/output options are prefix of data file names
+% since IO datas are stored in element-wise format, data over different 
+% elements will be saved in different files with file name format 
+%   prefix + "_" + num2str(elemIdx) + ".mat" 
+
+esdfParam.dataFileIO.densityDG      = esdf_get( "Density_Output_File_DG", "DENSITY_DG" );
+esdfParam.dataFileIO.potentialDG    = esdf_get( "Potential_Output_File_DG", "POTENTIAL_DG" );
+esdfParam.dataFileIO.atomStructDG   = esdf_get( "Atom_Struct_Output_File_DG", "ATOMSTRUCT_DG" );
+esdfParam.dataFileIO.albElemUniform = esdf_get( "ALB_Elem_Uniform_Output_File", "ALB_UNIFORM" );
+esdfParam.dataFileIO.albElemLGL     = esdf_get( "ALB_Elem_LGL_Output_File", "ALB_LGL" );
+esdfParam.dataFileIO.wfnExtElem     = esdf_get( "Wavefun_ExtElem_Output_File", "WAVEFUN_EXTELEM" );
+esdfParam.dataFileIO.potExtElem     = esdf_get( "Potential_ExtElem_Output_File", "POTENTIAL_EXTELEM" );
+
+% restart data file
 if esdfParam.isDGDFT
-
-% First SCF step parameters
-esdfParam.DG.CheFSI.firstFilterOrder = esdf_get( "First_SCFDG_ChebyFilterOrder", 60 );
-esdfParam.DG.CheFSI.firstCycleNum    = esdf_get( "First_SCFDG_ChebyCycleNum", 5 );
-
-% Second stage parameters
-esdfParam.DG.CheFSI.secondOuterIter   = esdf_get( "Second_SCFDG_ChebyOuterIter", 3 );
-esdfParam.DG.CheFSI.secondFilterOrder = esdf_get( "Second_SCFDG_ChebyFilterOrder", 60 );
-esdfParam.DG.CheFSI.secondCycleNum    = esdf_get( "Second_SCFDG_ChebyCycleNum", 3);
-
-% General SCF step parameters
-esdfParam.DG.CheFSI.generalFilterOrder = esdf_get( "General_SCFDG_ChebyFilterOrder", 60);
-esdfParam.DG.CheFSI.generalCycleNum    = esdf_get( "General_SCFDG_ChebyCycleNum", 1);
-
-% -------------- Complementary subspace strategy in CheFSI --------------
-
-esdfParam.DG.CheFSI.isUseCompSubspace = esdf_get("SCFDG_use_CheFSI_complementary_subspace", 0);
-
-esdfParam.DG.CheFSI.CompSubspace.nStates = ...
-    esdf_get("SCFDG_complementary_subspace_nstates", fix(esdfParam.basic.numExtraState/20.0 + 0.5) );
-esdfParam.DG.CheFSI.CompSubspace.ionIterRegularChebyFreq = ...
-    esdf_get("SCFDG_CS_ioniter_regular_Cheby_freq", 20 );
-
-esdfParam.DG.CheFSI.CompSubspace.biggerGridDimFac = ...
-    esdf_get("SCFDG_CS_bigger_grid_dim_fac", 1 );
-
-% Inner LOBPCG related options
-esdfParam.DG.CheFSI.CompSubspace.lobpcgIter = ...
-    esdf_get("SCFDG_complementary_subspace_inner_LOBPCGiter", 15);
-esdfParam.DG.CheFSI.CompSubspace.lobpcgTol = ...
-    esdf_get("SCFDG_complementary_subspace_inner_LOBPCGtol", 1e-8);
-
-% Inner CheFSI related options
-esdfParam.DG.CheFSI.CompSubspace.isHMatTopStatesUseCheby = ...
-    esdf_get("SCFDG_complementary_subspace_use_inner_Cheby", 1);
-esdfParam.DG.CheFSI.CompSubspace.HMatFilterOrder =  ...
-    esdf_get("SCFDG_complementary_subspace_inner_Chebyfilterorder", 5);
-esdfParam.DG.CheFSI.CompSubspace.HMatCycleNum = ...
-    esdf_get("SCFDG_complementary_subspace_inner_Chebycyclenum", 3);
-
+    esdfParam.dataFileIO.restartWfn = esdf_get( "Restart_Wfn_File", esdfParam.dataFileIO.wfnExtElem );
+    esdfParam.dataFileIO.restartDensity = esdf_get( "Restart_Density_File", esdfParam.dataFileIO.densityDG );
+else
+    esdfParam.dataFileIO.restartWfn = esdf_get( "Restart_Wfn_File", esdfParam.dataFileIO.wavefunPW );
+    esdfParam.dataFileIO.restartDensity = esdf_get( "Restart_Density_File", esdfParam.dataFileIO.densityPW );
 end
-
-
-
-% ************************************************************************
-%                        Parameters for Hybird
-% ************************************************************************
-
-esdfParam.hybrid.scfPhiMaxIter   = esdf_get( "SCF_Phi_MaxIter",     10 );
-esdfParam.hybrid.scfPhiTolerance = esdf_get( "SCF_Phi_Tolerance",   1e-6 );
-
-esdfParam.hybrid.MixType = esdf_get("Hybrid_Mixing_Type", "nested");
-if esdfParam.hybrid.MixType ~= "nested" && ...
-   esdfParam.hybrid.MixType ~= "scdiis" && ...
-   esdfParam.hybrid.MixType ~= "pcdiis"
-    error('Invalid hybrid mixing type.');
-end
-
-esdfParam.hybrid.isHybridACETwicePCDIIS = esdf_get( "Hybrid_ACE_Twice_PCDIIS", 1 );
-esdfParam.hybrid.isHybridACE            = esdf_get( "Hybrid_ACE", 1 );
-esdfParam.hybrid.isHybridActiveInit     = esdf_get( "Hybrid_Active_Init", 0 );
-esdfParam.hybrid.isHybridDF             = esdf_get( "Hybrid_DF", 0 );
-
-esdfParam.hybrid.DFType = esdf_get( "Hybrid_DF_Type", "QRCP" );
-if esdfParam.hybrid.DFType ~= "QRCP" && ...
-   esdfParam.hybrid.DFType ~= "Kmeans" && ...
-   esdfParam.hybrid.DFType ~= "Kmeans+QRCP"
-    error('Invalid ISDF type.');
-end
-
-esdfParam.hybrid.DFKmeansWFType = esdf_get( "Hybrid_DF_Kmeans_WF_Type", "Add" );
-if esdfParam.hybrid.DFKmeansWFType ~= "Add" && ...
-   esdfParam.hybrid.DFKmeansWFType ~= "Multi"
-    error('Invalid Kmeans WF type.');
-end
-
-esdfParam.hybrid.DFKmeansWFAlpha     = esdf_get( "Hybrid_DF_Kmeans_WF_Alpha", 2.0 ); % 0.5 1.0 1.5 2.0 2.5 3.0 4.0
-esdfParam.hybrid.DFKmeansTolerance   = esdf_get( "Hybrid_DF_Kmeans_Tolerance", 1e-3 );
-esdfParam.hybrid.DFKmeansMaxIter     = esdf_get( "Hybrid_DF_Kmeans_MaxIter", 99 );
-esdfParam.hybrid.DFNumMu             = esdf_get( "Hybrid_DF_Num_Mu", 6.0 );
-esdfParam.hybrid.DFNumGaussianRandom = esdf_get( "Hybrid_DF_Num_GaussianRandom", 2.0 );
-esdfParam.hybrid.DFTolerance         = esdf_get( "Hybrid_DF_Tolerance", 1e-20 );
-
-esdfParam.hybrid.MDscfPhiMaxIter     = esdf_get( "MD_SCF_Phi_MaxIter", esdfParam.hybrid.scfPhiMaxIter  );
-% This is used in DGDFT for energy based SCF
-esdfParam.hybrid.MDscfOuterMaxIter   = esdf_get( "MD_SCF_Outer_MaxIter",  esdfParam.control.scfOuterMaxIter ); 
-
-esdfParam.hybrid.exxDivergenceType   = esdf_get( "EXX_Divergence_Type", 1 );
-
-
-
-% ************************************************************************
-%                    Parameters for Ionic Motion
-% ************************************************************************
-
-% Both for geometry optimization and molecular dynamics
-% The default is 0, which means that only static claculation
-esdfParam.ionDyn.ionMaxIter = esdf_get("Ion_Max_Iter", 0);
-esdfParam.ionDyn.ionMove    = esdf_get("Ion_Move", "");
-
-% geometry optimization
-esdfParam.ionDyn.geoOptMaxForce = esdf_get("Geo_Opt_Max_Force", 0.001);
-
-% NLCG related parameters
-esdfParam.ionDyn.geoOptNLCGsigma = esdf_get("Geo_Opt_NLCG_Sigma", 0.02);
-
-% FIRE related parameters
-esdfParam.ionDyn.fireNmin = esdf_get("FIRE_Nmin", 5);  % Compare with LAMMPS
-esdfParam.ionDyn.firedt = esdf_get("FIRE_Time_Step", 41.3413745758);  % usually between 0.1-1fs 
-esdfParam.ionDyn.fireAtomicMass = esdf_get("FIRE_Atomic_Mass", 4.0);  % Compare with LAMMPS
-
-% Molecular dynamics
-esdfParam.ionDyn.ionTemperature        = esdf_get("Ion_Temperature", 300.0);
-esdfParam.ionDyn.TbetaIonTemperature   = au2KDef() / esdfParam.ionDyn.ionTemperature;
-
-esdfParam.ionDyn.MDTimeStep              = esdf_get("MD_Time_Step", 40.0);
-esdfParam.ionDyn.MDExtrapolationType     = esdf_get("MD_Extrapolation_Type", "linear"); 
-esdfParam.ionDyn.MDExtrapolationVariable = esdf_get("MD_Extrapolation_Variable", "density");
-esdfParam.ionDyn.qMass                   = esdf_get("Thermostat_Mass", 85000.0);
-esdfParam.ionDyn.langevinDamping         = esdf_get("Langevin_Damping", 0.01);
-esdfParam.ionDyn.kappaXLBOMD             = esdf_get("kappa_XLBOMD", 1.70);
-
-% Energy based SCF convergence for MD: currently used in DGDFT only
-esdfParam.ionDyn.MDscfEnergyCriteriaEngageIonIter = ...
-    esdf_get("MD_SCF_energy_criteria_engage_ioniter", esdfParam.ionDyn.ionMaxIter + 1); 
-esdfParam.ionDyn.MDscfEtotDiffTol = ...
-    esdf_get("MD_SCF_Etot_diff", esdfParam.control.scfOuterEnergyTolerance);
-esdfParam.ionDyn.MDscfEbandDiffTol = ...
-    esdf_get("MD_SCF_Eband_diff", esdfParam.control.scfOuterEnergyTolerance);
-
 
 
 % ***********************************************************************

@@ -7,10 +7,10 @@ function Y = ChebyFilterScaled(EigSol, X, m, a, b, a_L)
 %    interval [a, b], a_L is scaling factor smaller than interval endpoint 
 %    a to prevent potential overflow.
 %
-%    See also EigenSolverKS, EigenSolveKS/ChebyFilter.
+%    See also EigenSolverKS, EigenSolverKS/ChebyFilter.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 F = EigSol.fft;

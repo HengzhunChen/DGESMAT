@@ -4,12 +4,10 @@ function scf = CalculateEnergy(scf)
 %
 %    See also SCF.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
-
-global esdfParam
 
 hamKS = scf.eigSol.hamKS;
 
@@ -38,7 +36,7 @@ scf.EVxc = EVxc * vol / ntot;
 % Ionic repulsion related energy %
 scf.Eself = hamKS.Eself;
 scf.Ecor = (scf.Exc - scf.EVxc) - scf.Ehart - scf.Eself;
-if esdfParam.userOption.general.isUseVLocal
+if scf.userOption.isUseVLocal
     scf.EIonSR = hamKS.EIonSR;
     scf.Ecor = scf.Ecor +  scf.EIonSR;
 end

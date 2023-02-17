@@ -7,8 +7,8 @@ function HX = mtimes(H, X)
 %
 %    See also HamiltonianKS, Spinor.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
@@ -33,17 +33,12 @@ pseudoList = H.pseudoList;
 natom = length(pseudoList);
 for i = 1 : natom
     vnlList = pseudoList(i).vnlList;
-    nobt = length(vnlList);
-    for j = 1 : nobt
-        vnl = vnlList(j);
-        vnlwgt = vnl.wgt;
-        iv = vnl.idx;
-        dv = vnl.val;
-
-        weight = dv(:, 1)' * XFine(iv, :);  % index 1 means value component
-        weight = weight * vol / ntotFine * vnlwgt;
-        
-        HX_p(iv, :) = HX_p(iv, :) + dv(:, 1) .* weight;
+    if ~isempty(vnlList)
+        iv = vnlList.idx;
+        vnl = vnlList.val;
+        wgt = vnlList.wgt .* (vol / ntotFine);
+        wgt = wgt .* (vnl' * XFine(iv, :));
+        HX_p(iv, :) = HX_p(iv, :) + vnl * wgt;
     end
 end
 
@@ -58,11 +53,6 @@ x = yfine(idx, :) .* fac;
 HXg = HX_kg + x;
 HX = F' * HXg;
 HX = real(HX);  % important
-
-
-if H.isHybrid && H.isEXXActive
-    % TODO
-end
 
 
 % apply filter on the wavefunctions before exit, if required

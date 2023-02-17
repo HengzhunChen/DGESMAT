@@ -5,17 +5,19 @@ function EigSol = LOBPCGSolve(EigSol, numEig, eigMaxIter, eigMinTolerance, eigTo
 %    EigSol = LOBPCGSolve(EigSol, numEig, eigMaxIter, eigMinTolerance, 
 %    eigTolerance) computes the partial eigen-decomposition of 
 %    planewave-basis for Kohn Sham DFT according to number of eigen-pairs 
-%    to find numEig, maximum number of iteration eigMaxIter, mimium 
+%    to find numEig, maximum number of iteration eigMaxIter, minimum 
 %    tolerance must be reached eigMinTolerance and residual tolerance 
 %    eigTolerance, and save the eigen-pairs and residual value back to 
 %    EigSol.eigVal, EigSol.psi, EigSol.resVal.
 %
 %    See also EigenSolverKS.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
+
+timeStart = tic;
 
 % ************************************************************************
 % Initialization
@@ -67,7 +69,7 @@ AX = H * X;
 
 % --------------------- Start the main loop ----------------------------
 iter = 0;
-InfoPrint(0, 'Minmum tolerance is %1.8e \n', eigMinTolerance);
+InfoPrint(0, '\nMinmum tolerance is %1.8e \n', eigMinTolerance);
 
 P = zeros(nrows(X), ncols(X));
 
@@ -146,7 +148,7 @@ while iter < (10 * eigMaxIter) && ( iter < eigMaxIter || resMin > eigMinToleranc
     end
     
     
-    % Rayleigh-Rita procedure
+    % Rayleigh-Ritz procedure
     % AMat * C = BMat * C * Lambda
     % Assuming the dimension (needed) for C is width * width, then
     %     ( C_X )
@@ -169,10 +171,11 @@ while iter < (10 * eigMaxIter) && ( iter < eigMaxIter || resMin > eigMinToleranc
     AMat = (AMat + AMat') / 2;
     BMat = (BMat + BMat') / 2;
     
-    [V, D] = eigs(BMat, numCol);
-    
+    [V, D] = eig(BMat);    
     d = real(diag(D));
     [sigma2, id] = sort(d); % in ascending order
+    sigma2 = sigma2(1 : numCol);
+    id = id(1 : numCol);
     BMat = V(:, id);
 
     
@@ -193,9 +196,10 @@ while iter < (10 * eigMaxIter) && ( iter < eigMaxIter || resMin > eigMinToleranc
     
     % Solve the standard eigenvalue problem
     AMat1 = (AMat1 + AMat1') / 2;
-    [V, eigval] = eigs( AMat1, numKeep );
+    [V, eigval] = eig(AMat1);
     d = real(diag(eigval));
     [~, id] = sort(d);
+    id = id(1 : numKeep);
     AMat1 = V(:, id);
     
     % Compute the correct eigenvactors and save them in AMat
@@ -259,14 +263,18 @@ EigSol.eigVal = eigValS;
 EigSol.resVal = resNorm;
 EigSol.psi = X;
 
+timeEnd = toc(timeStart);
+
 if isConverged
-    InfoPrint(0, "\nAfter %d iterations, LOBPCG has converged. \n", iter);
+    InfoPrint(0, "After %d iterations, LOBPCG has converged. \n", iter);
     InfoPrint(0, "The maximum norm of the residual is %1.8e \n", resMax); 
-    InfoPrint(0, "The minimum norm of the residual is %1.8e \n\n", resMin); 
+    InfoPrint(0, "The minimum norm of the residual is %1.8e \n", resMin);
+    InfoPrint(0, "Time for this LOBPCG call is %8f [s] \n\n", timeEnd);
 else
-    InfoPrint(0, "\nAfter %d iterations, LOBPCG did not converge. \n", iter);
+    InfoPrint(0, "After %d iterations, LOBPCG did not converge. \n", iter);
     InfoPrint(0, "The maximum norm of the residual is %1.8e \n", resMax); 
-    InfoPrint(0, "The minimum norm of the residual is %1.8e \n\n", resMin); 
+    InfoPrint(0, "The minimum norm of the residual is %1.8e \n", resMin);
+    InfoPrint(0, "Time for this LOBPCG call is %8f [s] \n\n", timeEnd);    
 end
    
 

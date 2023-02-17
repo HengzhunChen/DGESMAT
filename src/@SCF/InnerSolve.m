@@ -4,8 +4,8 @@ function scf = InnerSolve(scf, iter)
 %
 %    See also SCF, EigenSolverKS, HamiltonianKS.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
@@ -45,41 +45,24 @@ if scf.PWSolver == "LOBPCG"
     eigSol = LOBPCGSolve(eigSol, numEig, eigMaxIter, eigMinTolerance, eigTolNow);
 elseif scf.PWSolver == "PPCG"
     % Use PPCG
-    eigSol = PPCGSolve(eigSol, numEig, eigMaxIter);
+    eigSol = PPCGSolve(eigSol, numEig, eigMaxIter, scf.PPCGsbSize);
 elseif scf.PWSolver == "eigs"
     % Use eigs() function in MATLAB
     eigSol = eigsSolve(eigSol, numEig, eigMaxIter, eigTolNow);
 elseif scf.PWSolver == "CheFSI"
     % Use CheFSI
-    if scf.isChebyInIonDyn == 0
-        % use static schedule
-        InfoPrint(0, ' CheFSI in PWDFT working on static schedule. \n');
-        % use CheFSI or LOBPCG on first step
-        if iter <= 1
-            if scf.CheFSI.firstCycleNum <= 0
-                eigSol = LOBPCGSolve(eigSol, numEig, ...
-                    eigMaxIter, eigMinTolerance, eigTolNow);
-            else
-                eigSol = ChebyStepFirst(eigSol, numEig, ...
-                    scf.CheFSI.firstCycleNum, ...
-                    scf.CheFSI.firstFilterOrder);
-            end
+    InfoPrint(0, ' CheFSI in PWDFT working on static schedule. \n');
+    % use CheFSI or LOBPCG on first step
+    if iter <= 1
+        if scf.CheFSI.firstCycleNum <= 0
+            eigSol = LOBPCGSolve(eigSol, numEig, ...
+                eigMaxIter, eigMinTolerance, eigTolNow);
         else
-            eigSol = ChebyStepGeneral(eigSol, numEig, ...
-                scf.CheFSI.generalFilterOrder);
+            eigSol = ChebyStepFirst(eigSol, numEig, ...
+                scf.CheFSI.firstCycleNum, scf.CheFSI.firstFilterOrder);
         end
     else
-        % use ion-dynamics schedule
-        InfoPrint(0, ' CheFSI in PWDFT working on ion-dynamics schedule. \n');
-        if iter <= 1
-            for chebyIter = 1 : eigMaxIter
-                eigSol = ChebyStepGeneral(eigSol, numEig, ...
-                    scf.CheFSI.generalFilterOrder);
-            end
-        else
-            eigSol = ChebyStepGeneral(eigSol, numEig, ...
-                scf.CheFSI.generalFilterOrder);
-        end
+        eigSol = ChebyStepGeneral(eigSol, numEig, scf.CheFSI.generalFilterOrder);
     end
 else
     error('Not supported PWSolver type.');

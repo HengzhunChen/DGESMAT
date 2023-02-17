@@ -1,24 +1,26 @@
-function EigSol = PPCGSolve(EigSol, numEig, eigMaxIter)
+function EigSol = PPCGSolve(EigSol, numEig, eigMaxIter, sbSize)
 % EIGENSOLVERKS/PPCGSOLVE PPCG solver of eigen-decomposition for 
 %    planewave-basis Kohn Sham DFT
 %
-%    EigSol = PPCGSolve(EigSol, numEig, eigMaxIter) computes the partial 
-%    eigen-decomposition of planewave-basis for Kohn Sham DFT according to 
-%    number of eigen-pairs to find numEig, maximum number of iteration 
-%    eigMaxIter, and save the eigen-pairs and residual value back to 
-%    EigSol.eigVal, EigSol.psi, EigSol.resVal.
+%    EigSol = PPCGSolve(EigSol, numEig, eigMaxIter, sbSize) computes the 
+%    smallest partial eigen-decomposition of planewave-basis for Kohn-Sham 
+%    DFT according to the number of eigen-pairs to find numEig, maximum 
+%    number of iteration eigMaxIter, subblock size sbSize, and save the 
+%    eigen-pairs and residual value back to EigSol.eigVal, EigSol.psi, 
+%    EigSol.resVal.
 %
 %    See also EigenSolverKS.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
-global esdfParam;
+timeStart = tic;
 
-sbSize = esdfParam.PW.PPCGsbSize;
-
+if nargin == 3
+    sbSize = 1;
+end
 
 % ***********************************************************************
 % Initialization
@@ -112,6 +114,9 @@ while iter < eigMaxIter
 
     % perform the sweep
     nsb = width / sbSize;  % this should be generalized to subblocks
+    if nsb ~= floor(nsb)
+        error('In current implementation, size of sub blocks should be integer!');
+    end
         
     for k = 1 : nsb
         % fetch individual columns
@@ -124,8 +129,6 @@ while iter < eigMaxIter
         aw = AW(:, idxSta : idxEnd);
         
         if numSet == 3
-%             p = P(:, k : (k + sbSize - 1));
-%             ap = AP(:, k : (k + sbSize -1));
             p = P(:, idxSta : idxEnd);
             ap = AP(:, idxSta : idxEnd);
         end            
@@ -174,15 +177,6 @@ while iter < eigMaxIter
         d = real(diag(D));
         [~, id] = sort(d);  % in ascending order
         AMat = V(:, id);
-
-%         idxSta = sbSize * (k - 1) + 1;
-%         idxEnd = idxSta + sbSize - 1;
-%         x  =  X(:, idxSta : idxEnd);
-%         w  =  W(:, idxSta : idxEnd);
-%         p  =  P(:, idxSta : idxEnd);
-%         ax = AX(:, idxSta : idxEnd);
-%         aw = AW(:, idxSta : idxEnd);
-%         ap = AP(:, idxSta : idxEnd);
         
         cx = AMat(1 : sbSize, 1 : sbSize);
         cw = AMat((sbSize+1) : 2*sbSize, 1 : sbSize);
@@ -249,9 +243,11 @@ EigSol.eigVal = eigValS;
 EigSol.resVal = resNorm;
 EigSol.psi = X;
 
+timeEnd = toc(timeStart);
+
 InfoPrint(0, "\nAfter %d iterations of PPCG \n", iter);
 InfoPrint(0, "The maximum norm of the residual is %1.8e \n", resMax); 
-InfoPrint(0, "The minimum norm of the residual is %1.8e \n\n", resMin); 
-
+InfoPrint(0, "The minimum norm of the residual is %1.8e \n", resMin); 
+InfoPrint(0, "Time for this PPCG call is %8f [s] \n\n", timeEnd);
 
 end

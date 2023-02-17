@@ -6,11 +6,11 @@ function [b_up, ritzValues] = ChebyBound(EigSol, numLanczosSteps)
 %    upper bound of eigenvalues b_up and ritz values ritzValues which is
 %    used to esimate the lower bound of eigenvalues.
 %
-%    See also EigenSolverKS, EigenSolveKS/ChebyStepFirst,
+%    See also EigenSolverKS, EigenSolverKS/ChebyStepFirst,
 %    EigenSolverKS/ChebyStepGeneral.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 F = EigSol.fft;

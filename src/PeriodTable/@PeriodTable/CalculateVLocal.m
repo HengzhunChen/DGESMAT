@@ -4,17 +4,17 @@ function [VLocalSR, GaussianPseudoCharge] = CalculateVLocal(PT, atom, domain, gr
 %    charge and its derivatives.
 % 
 %    [VLocalSR, GaussianPseudoCharge] = CalculateVLocal(PT, atom, domain, gridpos)
-%    Both VLocalSR and GaussianPseudoCharge are struct with idx and val. 
-%    To check whether they are empty or not, use isempty to check it
-%    member like idx instead of itself.
+%    Both VLocalSR and GaussianPseudoCharge are struct with idx, val and 
+%    drv. idx is index with cutoff, val is value of VLocalSR or 
+%    GaussianPseudoCharge, drv is derivative in three directions. 
 %    This function is used WHEN user option isUseVLocal is true.
 %
 %    See also PeriodTable, PeriodTable/Setup, 
 %    HamiltonianKS/CalculatePseudoPotential, 
 %    HamiltonianDG/CalculatePseudoPotential.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
@@ -32,12 +32,14 @@ Zion = PT.Zion(atom.type);
 
 VLocalSR = struct(...
     'idx', [], ...  % index within cutoff
-    'val', [] ...   % value and its three derivatives
+    'val', [], ...  % value of VLocalSR
+    'drv', [] ...  % derivatives in three directions
     );
 
 GaussianPseudoCharge = struct(...
     'idx', [], ...  % index within cutoff
-    'val', [] ...   % value and its three derivatives
+    'val', [], ...  % value of GaussianPseudoCharge
+    'drv', [] ...  % derivatives in three directions
     );
 % NOTE: to check whether the above struct is empty, use 
 % isempty(VLocalSR.idx) instead of isempty(VLocal)
@@ -76,21 +78,21 @@ if norm(minDist) <= Rzero
     derspl = spldata.drv_vLocal;
     der = seval(rad, derspl(:, 1), derspl(:, 2), derspl(:, 3), derspl(:, 4), derspl(:, 5));
     
-    dv = zeros(idxsize, dim+1);  % value and its three derivatives
-    dv(:, 1) = val;
+    dv = zeros(idxsize, dim);  % derivatives in three directions
     % FIXME: derivatives later
     
     VLocalSR.idx = idx;
-    VLocalSR.val = dv;
+    VLocalSR.val = val;
     
     % ------------------ Gaussian pseudocharge ------------------------
-    factor = Zion / ( sqrt(pi) * RGaussian )^3;
-    dv = zeros(idxsize, dim+1);
-    dv(:, 1) = factor * exp( -(rad / RGaussian).^2 );
+    factor = Zion / ( sqrt(pi) * RGaussian )^3;    
+    val = factor * exp( -(rad / RGaussian).^2 );
+    
+    dv = zeros(idxsize, dim);  % derivatives in three directions
     % FIXME: derivatives later
     
     GaussianPseudoCharge.idx = idx;
-    GaussianPseudoCharge.val = dv;
+    GaussianPseudoCharge.val = val;
     
 end
     

@@ -1,83 +1,97 @@
 # input file for PWDFT
 
-# ---------------------------------------------------------
+# -----------------------------------------------------------
 # Basic Parameters 
 # (all listed below are filling with their default values)
-# ---------------------------------------------------------
+# -----------------------------------------------------------
 
-Ecut_Wavefunction:    40.0
-Density_Grid_Factor:    2.0
+Ecut_Wavefunction:  40.0
+Density_Grid_Factor:  2.0
 
-Temperature:    300.0
-Extra_States:    0
-Unused_States:    0
-Extra_Electron:    0
+Temperature:  300.0
+Extra_States:  0
+Unused_States:  0
+Extra_Electron:  0
 
-Mixing_MaxDim:    9
-Mixing_Type:    anderson
+Mixing_MaxDim:  9
+Mixing_Type:  anderson
 # options: anderson, kerker+anderson
-Mixing_Variable:    potential
+Mixing_Variable:  potential
 # options: potential, density
-Mixing_StepLength:    0.8
+Mixing_StepLength:  0.8
 
-Pseudo_Type:    HGH
+Pseudo_Type:  HGH
 # options: HGH, ONCV
 begin UPF_File
-#
+# path to UPF files, default data from ppdata/default
 end UPF_File
-# default data from ppdata/default
 
-XC_Type:    XC_LDA_XC_TETER93
-# options: XC_LDA_XC_TETER93, XC_LDA_XC_PZ, XC_GGA_XC_PBE, XC_HYB_GGA_XC_HSE06(TODO)
+XC_Type:  XC_LDA_XC_TETER93
+# options: XC_LDA_XC_TETER93, XC_LDA_XC_PZ, XC_GGA_XC_PBE
 
-VDW_Type:   None
+VDW_Type: None
 # options: None, DFT-D2 (used with GGA type XC)
 
 
-PW_Solver:    LOBPCG
+PW_Solver:  LOBPCG
 # options: LOBPCG, eigs, PPCG, CheFSI
 
 # parameter of PW_Solver PPCG
-PPCG_sbSize:    1  
+PPCG_sbSize:  1  
 
 # parameters of PW_Solver CheFSI
-First_SCF_PWDFT_ChebyFilterOrder:    40
-First_SCF_PWDFT_ChebyCycleNum:    5
-General_SCF_PWDFT_ChebyFilterOrder:    35
-PWDFT_Cheby_use_wfn_ecut_filt:    1
+First_SCF_PWDFT_ChebyFilterOrder:  40
+First_SCF_PWDFT_ChebyCycleNum:  5
+General_SCF_PWDFT_ChebyFilterOrder:  35
+PWDFT_Cheby_use_wfn_ecut_filt:  1
+
 
 
 # -------------------------------------
 # Control Parameters
 # -------------------------------------
 
-SCF_Outer_Tolerance:    1e-6
-SCF_Outer_MinIter:    3
-SCF_Outer_MaxIter:    30
+SCF_Outer_Tolerance:  1e-6
+SCF_Outer_MinIter:  3
+SCF_Outer_MaxIter:  30
 
-Eig_Tolerance:    1e-20
-Eig_Min_Tolerance:    1e-3
-Eig_MinIter:    2
-Eig_MaxIter:    3
+Eig_Tolerance:  1e-20
+Eig_Min_Tolerance:  1e-3
+Eig_MinIter:  2
+Eig_MaxIter:  3
+
 
 
 # -------------------------------------
 # User Options
 # -------------------------------------
 
-Use_Atom_Density:    0    # use with ONCV type pseudopotential
-Use_VLocal:    0
-Restart_Density:    0
-Restart_Wfn:    0
-Output_Density:    0
-Output_Struct_Info:    0
-Output_Wfn:    0
-Eig_Tolerance_Dynamic:    0
+Use_Atom_Density:  0    # use with ONCV type pseudopotential
+Use_VLocal:  0
+Eig_Tolerance_Dynamic:  0
+
+Output_Wavefun_PW:  0
+Wavefun_Output_File_PW:  WAVEFUN_PW.mat
+
+Output_Density_PW:  0
+Density_Output_File_PW:  DENSITY_PW.mat
+
+Output_Potential_PW:  0
+Potential_Output_File_PW:  POTENTIAL_PW.mat
+
+Output_Atom_Struct_PW:  0
+Atom_Struct_Output_File_PW:  ATOMSTRUCT_PW.mat
+
+Restart_Density:  0
+Restart_Density_File:  # default value is decided by Density_Output_File_PW
+
+Restart_Wfn:  0
+Restart_Wfn_File:  # default value is decided by Wavefun_Output_File_PW
 
 
-# -------------------------------------------
+# ----------------------------------------------
 # User-provided Data (have no default value) 
-# -------------------------------------------
+# ----------------------------------------------
 
 begin Super_Cell
 #    xxx  yyy  zzz 
@@ -85,10 +99,9 @@ end Super_Cell
 
 Atom_Types_Num:  
 
-# Atom Positions: 
-# list each type atom with corresponding atom position one by one in the 
-# following template
-# 
+
+# NOTE: list atom positions in different types one by one in the following template 
+#
 # Atom_Type:  type1
 # begin Atom_Red
 #    xxx  yyy  zzz 

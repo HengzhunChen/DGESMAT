@@ -7,8 +7,8 @@ function X1 = getSpin(X, component)
 %
 %    See also Spinor, Spinor/setSpin.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 componentIdx = [0, cumsum(X.numStateList)];

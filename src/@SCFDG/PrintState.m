@@ -3,33 +3,29 @@ function PrintState(scfDG)
 %
 %    See also SCFDG.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
 hamDG = scfDG.hamDG;
 
-if ~scfDG.CheFSIDG.isUseCompSubspace
-    InfoPrint(0, '\n Eigenvalues in the global domain.\n');
-    for i = 1 : length(hamDG.eigVal)
-        InfoPrint(0, ... 
-            "band#    = ", i, ...
-            "eigval   = ", hamDG.eigVal(i), ...
-            "occrate  = ", hamDG.occupationRate(i));
-    end
-    InfoPrint(0, '\n');
+InfoPrint(0, '\n Eigenvalues in the global domain.\n');
+for i = 1 : length(hamDG.eigVal)
+    InfoPrint(0, ... 
+        "band#    = ", i, ...
+        "eigval   = ", hamDG.eigVal(i), ...
+        "occrate  = ", hamDG.occupationRate(i));
 end
+InfoPrint(0, '\n');
 
-% TODO: update formula below
-% InfoPrint(0, '\n');
-% InfoPrint(0, 'NOTE:  Ecor  = Exc - EVxc - Ehart -Eself \n');
-% InfoPrint(0, '       Etot  = Ekin + Ecor \n');
-% InfoPrint(0, '       Efree = Etot + Entropy \n \n');
+InfoPrint(0, '\n');
+InfoPrint(0, 'NOTE:  Ecor  = Exc - EVxc - Ehart -Eself \n');
+InfoPrint(0, '       Etot  = Ekin + Ecor \n');
+InfoPrint(0, '       Efree = Etot + Entropy \n \n');
 
 InfoPrint(0, "EfreeHarris       = ",  scfDG.EfreeHarris, "[au]");
-% FIXME
-% InfoPrint(0, "EfreeSecondOrder  = ",  scfDG.EfreeSecondOrder, "[au]");
+InfoPrint(0, "EfreeSecondOrder  = ",  scfDG.EfreeSecondOrder, "[au]");
 InfoPrint(0, "Etot              = ",  scfDG.Etot, "[au]");
 InfoPrint(0, "Efree             = ",  scfDG.Efree, "[au]");
 InfoPrint(0, "Ekin              = ",  scfDG.Ekin, "[au]");

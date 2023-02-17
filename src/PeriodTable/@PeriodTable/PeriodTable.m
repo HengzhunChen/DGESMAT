@@ -2,13 +2,13 @@ classdef PeriodTable
     % PERIODTABLE class for potential information, especially for pseudo
     %    potential for each type of atom being used.
     %
-    %    ptable = PeriodTable() returns a PeriodTable object according to
-    %    info from esdfParam.
+    %    ptable = PeriodTable(esdfParam) returns a PeriodTable object 
+    %    according to info from esdfParam.
     %
     %    See also ESDFInputParam, ReadUPF, HGH, PTEntry, Atom.
 
-    %  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-    %                     Fudan University
+    %  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+    %                          Fudan University
     %  This file is distributed under the terms of the MIT License.
     
     
@@ -25,14 +25,19 @@ classdef PeriodTable
             
         pteMap  % map, from atomic number to PTEntry
         splineMap  % map, from atomic number to splines for pseudopotentials
+
+        userOption = struct(...
+            'isUseVLocal', [] ...
+            );
     end
 
     methods
-        function PT = PeriodTable()
+        function PT = PeriodTable(esdfParam)
             PT.pteMap = containers.Map('KeyType', 'double', 'ValueType', 'any');
-            PT.splineMap = containers.Map('KeyType', 'double', 'ValueType', 'any');
-            
-            PT = Setup(PT);
+            PT.splineMap = containers.Map('KeyType', 'double', 'ValueType', 'any'); 
+            PT.userOption.isUseVLocal = esdfParam.userOption.general.isUseVLocal;
+
+            PT = Setup(PT, esdfParam);
         end
         
         function flag = IsNonlocal(PT, atomNum)

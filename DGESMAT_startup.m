@@ -2,8 +2,8 @@ function DGESMAT_startup()
 % DGESMAT_STARTUP  Startup file for DGESMAT
 %   MAKE adds paths of the DGESMAT to Matlab.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
@@ -18,7 +18,7 @@ addpath(genpath([file_path 'src']));
 % addpath(genpath([file_path 'external']));
 
 % Folder for all pseudopotential files
-addpath([file_path 'ppdata/default']);
+addpath([file_path 'ppdata']);
 
 
 end

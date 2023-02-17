@@ -5,23 +5,25 @@ classdef HamiltonianKS
     %    H = HamiltonianKS() returns an empty HamiltonianKS object.
     %
     %    H = HamiltonianKS(esdfParam) returns a HamiltonianKS object
-    %    according to parameters in esdfParam.
+    %    according to parameters in ESDFInputParam object esdfParam.
     %
-    %    H = HamiltonianKS(domain, atomList) returns a HamiltonianKS 
-    %    object with respect to domain and atomList.
+    %    H = HamiltonianKS(esdfParam, domain, atomList) returns a 
+    %    HamiltonianKS object with respect to ESDFInputParam object 
+    %    esdfParam, domain and atomList.
     %
-    %    H = HamiltonianKS(domain, atomList, ptable) returns a
-    %    HamiltonianKS object with respect to domain, atomList and 
-    %    PeriodTale ptable.
+    %    H = HamiltonianKS(esdfParam, domain, atomList, ptable) returns a
+    %    HamiltonianKS object with respect to ESDFInputParam object 
+    %    esdfParam, domain, atomList and PeriodTale object ptable.
     %
-    %    H = HamiltonianKS(domain, atomList, ptable, fft) returns a
-    %    HamiltonianKS object with respect to domain, atomList, 
-    %    PeriodTable ptable and Fourier fft.
+    %    H = HamiltonianKS(esdfParam, domain, atomList, ptable, fft) 
+    %    returns a HamiltonianKS object with respect to ESDFInputParam 
+    %    object esdfParam domain, atomList, PeriodTable ptable and 
+    %    Fourier fft.
     %  
     %    See also Domain, Atom, Fourier, PeriodTable, xcRef.
 
-    %  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-    %                     Fudan University
+    %  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+    %                          Fudan University
     %  This file is distributed under the terms of the MIT License.
 
     properties (SetAccess = public)
@@ -29,9 +31,11 @@ classdef HamiltonianKS
         atomList
         ptable
         fft
+        ecutWavefunction
         
         numSpin
         numExtraState
+        numExtraElectron
         numOccupiedState
         
         eigVal
@@ -61,13 +65,13 @@ classdef HamiltonianKS
         
         pseudoType
         XCType
-        isHybrid
-        isEXXActive        
+        VDWType
         
         pseudoList  % pseudo info in each atom
         ecutFilter  % used in CheFSI
-        hybrid
-        exx
+
+        userOption
+        isDGDFT  % whether this is a subproblem of DGDFT
     end        
     
     
@@ -79,31 +83,14 @@ classdef HamiltonianKS
                 'vLocalSR', [], ...  % used if isUseVLocal
                 'vnlList', [] ...
                 );
-
-            H.hybrid = struct(...
-                'ScreenMu', 0.106, ...  
-                'ExxFraction', 0.25, ...  
-                'DFType', "", ...
-                'DFKmeansWFType', "", ...
-                'DFKmeansWFAlpha', [], ...
-                'DFKmeansTolerance', [], ...
-                'DFKmeansMaxIter', [], ...
-                'DFNumMu', [], ...
-                'DFNumGaussianRandom', [], ...
-                'DFTolerance', [], ...
-                'exxDivergenceType', [], ...
-                'exxDiv', [] ...
-                );
             
             H.ecutFilter = struct(...
                 'isApplyFilter', [], ...
                 'wfnCutoff', [] ...
                 );
             
-            H.exx = struct(...
-                'phiEXX', [], ...
-                'vexxProj', [], ...
-                'exxgkk', [] ...
+            H.userOption = struct(...
+                'isUseVLocal', [] ...
                 );
             
             switch (nargin)
@@ -111,48 +98,50 @@ classdef HamiltonianKS
                     H.domain = Domain();
                     return;
                 case 1
-                    esdfParam = varargin{1};
-                    
+                    esdfParam = varargin{1};                    
                     H.domain = esdfParam.basic.domain;
                     H.atomList = esdfParam.basic.atomList;
-                    ptable = PeriodTable();
+                    ptable = PeriodTable(esdfParam);
                     H.ptable = ptable;
                     H.fft = Fourier(esdfParam.basic.domain);
-                    H = Setup(H);
+                    H = Setup(H, esdfParam);
                     return;                    
-                case 2
-                    domain = varargin{1};
-                    atomList = varargin{2};
+                case 3
+                    esdfParam = varargin{1};
+                    domain = varargin{2};
+                    atomList = varargin{3};
                     
                     H.domain = domain;
                     H.atomList = atomList;                    
-                    ptable = PeriodTable();
+                    ptable = PeriodTable(esdfParam);
                     H.ptable = ptable;
                     H.fft = Fourier(domain);
-                    H = Setup(H);
+                    H = Setup(H, esdfParam);
                     return;
-                case 3
-                    domain = varargin{1};
-                    atomList = varargin{2};
-                    ptable = varargin{3};
+                case 4
+                    esdfParam = varargin{1};
+                    domain = varargin{2};
+                    atomList = varargin{3};
+                    ptable = varargin{4};
                     
                     H.domain = domain;
                     H.atomList = atomList;
                     H.ptable = ptable;
                     H.fft = Fourier(domain);
-                    H = Setup(H);
+                    H = Setup(H, esdfParam);
                     return;
-                case 4
-                    domain = varargin{1};
-                    atomList = varargin{2};
-                    ptable = varargin{3};
-                    fft = varargin{4};
+                case 5
+                    esdfParam = varargin{1};
+                    domain = varargin{2};
+                    atomList = varargin{3};
+                    ptable = varargin{4};
+                    fft = varargin{5};
                     
                     H.domain = domain;
                     H.atomList = atomList;
                     H.ptable = ptable;
                     H.fft = fft;
-                    H = Setup(H);
+                    H = Setup(H, esdfParam);
                     return;
                 otherwise
                     error('Wrong number of arguments');

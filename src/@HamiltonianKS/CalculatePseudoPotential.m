@@ -16,13 +16,12 @@ function HamKS = CalculatePseudoPotential(HamKS)
 %        ionic energy if isUseVLocal), van der Waals energy and external 
 %        energy and corresponding forces.
 %
-%    See also HamiltonianKS, PeriodTable.
+%    See also HamiltonianKS, PeriodTable, ESDFInputParam.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
-global esdfParam;
 
 ptable = HamKS.ptable;
 dim = dimDef();
@@ -30,7 +29,7 @@ ntotFine = HamKS.domain.NumGridTotalFine();
 numAtom = length(HamKS.atomList);
 vol = HamKS.domain.Volume();
 
-% clear HamKS.pseudo
+% clear HamKS.pseudoList
 HamKS.pseudoList = struct(...
         'pseudoCharge', [], ...
         'vLocalSR', [], ...
@@ -53,19 +52,26 @@ for i = 1 : numAtom
     nZion = nZion + ptable.Zion(atype);
 end
 % add extra electron
-nelec = nZion + esdfParam.basic.extraElectron;
+nelec = nZion + HamKS.numExtraElectron;
 
+% This is spin-restricted calculation. nelec should be even.
+% If this is a PWDFT calculation, it will be error.
+% If this is just a PW subproblem of DGDFT, it is allowable.
 if mod(nelec, 2) ~= 0
-    error('This is spin-restricted calculation. nelec should be even');
+    if ~isDGDFT
+        error("This is spin-restricted calculation. nelec should be even. ");
+    else
+        warning("This is spin-restricted calculation. nelec should be even. ");
+    end
 end
-HamKS.numOccupiedState = nelec / HamKS.numSpin;
+HamKS.numOccupiedState = ceil(nelec / HamKS.numSpin);
 
 
 % ---------------------- local pseudopotential -------------------------
 timeStart = tic;
 InfoPrint(0, "Computing the local pseudopotential");
 
-if ~esdfParam.userOption.general.isUseVLocal
+if ~HamKS.userOption.isUseVLocal
     % compute pseudocharge by Pseudo Charge formulation
     HamKS.pseudoCharge(:) = 0;
     for i = 1 : numAtom
@@ -76,7 +82,7 @@ if ~esdfParam.userOption.general.isUseVLocal
         if ~isempty(HamKS.pseudoList(i).pseudoCharge.idx)
             idx = HamKS.pseudoList(i).pseudoCharge.idx;
             val = HamKS.pseudoList(i).pseudoCharge.val;
-            HamKS.pseudoCharge(idx) = HamKS.pseudoCharge(idx) + val(:, 1); 
+            HamKS.pseudoCharge(idx) = HamKS.pseudoCharge(idx) + val; 
             % 1 means VALUE of pseudocharge            
         end
     end    
@@ -105,11 +111,11 @@ else
             % VLocal short range
             idx = HamKS.pseudoList(i).vLocalSR.idx;
             val = HamKS.pseudoList(i).vLocalSR.val;
-            HamKS.vLocalSR(idx) = HamKS.vLocalSR(idx) + val(:, 1);
+            HamKS.vLocalSR(idx) = HamKS.vLocalSR(idx) + val;
             % pseudo charge
             idx = HamKS.pseudoList(i).pseudoCharge.idx;
             val = HamKS.pseudoList(i).pseudoCharge.val;
-            HamKS.pseudoCharge(idx) = HamKS.pseudoCharge(idx) + val(:, 1);            
+            HamKS.pseudoCharge(idx) = HamKS.pseudoCharge(idx) + val;            
         end
     end
     
@@ -139,7 +145,7 @@ for i = 1 : numAtom
     if ptable.IsNonlocal(atom.type)
         vnlList = ptable.CalculateNonlocalPP(atom, HamKS.domain, gridpos);
         HamKS.pseudoList(i).vnlList = vnlList;
-        count = count + length(vnlList);
+        count = count + length(vnlList.wgt);
     end
 end
 

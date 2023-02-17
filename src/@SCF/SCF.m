@@ -2,20 +2,20 @@ classdef SCF
     % SCF class for self-consistent field iteration over the global domain 
     %    or extended element.
     %
-    %    scf = SCF() returns an empty SCF object.
+    %    scf = SCF(esdfParam) returns an empty SCF object according to 
+    %    ESDFInputParam object esdfParam.
     %
-    %    scf = SCF(eigSol) returns a SCF object with respect to 
-    %    EigenSolverKS object eigSol.
+    %    scf = SCF(esdfParam, eigSol) returns a SCF object with respect to 
+    %    ESDFInputParam object esdfParam, EigenSolverKS object eigSol.
     %
-    %    See also EigenSolverKS, HamiltonianKS, PeriodTable.
+    %    See also EigenSolverKS, HamiltonianKS, PeriodTable, ESDFInputParam.
 
-    %  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-    %                     Fudan University
+    %  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+    %                          Fudan University
     %  This file is distributed under the terms of the MIT License.
 
     properties (SetAccess = private)
         controlVar
-        PWSolver
         eigSol
         
         % Physical parameters %
@@ -40,12 +40,15 @@ classdef SCF
         vtotNew
         scfNorm          % || V_{new}-V_{old} || / ||V_{old}||
         efreeDifPerAtom  % difference bwtween free energy and Harris free energy per atom        
-        
+
+        PWSolver
+        PPCGsbSize       % parameter of PPCG, size of subblocks in PPCG
         CheFSI           % Chebyshev filtering subspace iteration
-        isChebyInIonDyn  % Do the usual Chebyshev filtering schedule 
-                         % or work in ion dynamic mode
+
         mixing
-        restart
+
+        userOption
+        dataFileIO
     end
     
     methods
@@ -56,9 +59,6 @@ classdef SCF
                 'eigMaxIter', [], ...
                 'scfTolerance', [], ...
                 'scfMaxIter', [], ...
-                'scfPhiMaxIter', [], ...
-                'scfPhiTolerance', [], ...
-                'numUnusedState', [], ...
                 'isEigToleranceDynamic', [], ...
                 'isCalculateGradRho', [] ...  % need for GGA, meta-GGA and hybrid functional
                 );
@@ -71,12 +71,7 @@ classdef SCF
                 'dvMat', [], ...
                 'mixSave', [] ...  % work array for the mixing variable in the inner iteration
                 );
-            
-            scf.restart = struct(...
-                'DensityFileName', "", ...
-                'WfnFileName', "" ...
-                );
-            
+                        
             scf.CheFSI = struct(...
                 'firstFilterOrder', [], ...
                 'firstCycleNum', [], ...
@@ -84,13 +79,35 @@ classdef SCF
                 'isApplyWfnEcut', [] ...
                 );
 
+            scf.userOption = struct(...
+                'isOutputWavefun', [], ...
+                'isOutputDensity', [], ...
+                'isOutputPotential', [], ...
+                'isOutputAtomStruct', [], ...
+                ...
+                'isUseVLocal', [] ...
+                );
+
+            scf.dataFileIO = struct(...
+                'wavefunPW', "", ...
+                'densityPW', "", ...
+                'potentialPW', "", ...
+                'atomStructPW', "", ...
+                ...
+                'restartWfn', "", ...
+                'restartDensity', "" ...
+                );
+
         
             switch (nargin)
-                case 0            
-                    scf.eigSol = EigenSolverKS();
                 case 1
-                    eigSol = varargin{1};
-                    scf = Setup(scf, eigSol);
+                    esdfParam = varargin{1};
+                    eigSol = EigenSolverKS();
+                    scf = Setup(scf, esdfParam, eigSol);
+                case 2
+                    esdfParam = varargin{1};
+                    eigSol = varargin{2};
+                    scf = Setup(scf, esdfParam, eigSol);
             end
         end              
     end

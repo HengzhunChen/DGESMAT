@@ -1,0 +1,97 @@
+# H2 with 8 atoms (DGDFT)
+
+Mixing_Variable:       potential
+Mixing_Type:           anderson 
+Mixing_StepLength:     0.8
+Mixing_MaxDim:         10
+
+Extra_States:          0 
+
+Temperature:           300
+SCF_Outer_MaxIter:     30
+SCF_Outer_Tolerance:   1e-7
+# SCF_Inner_MaxIter:     1
+# SCF_Inner_Tolerance:   1e-5
+SCF_Inner_MaxIter:     2
+SCF_Inner_Tolerance:   1e-2
+
+Eig_MaxIter:           3
+Eig_Tolerance:         1e-20
+Eig_Min_Tolerance:     1e-6
+
+SVD_Basis_Tolerance:   1e-6
+
+Pseudo_Type:           HGH
+# Pseudo_Type:           ONCV
+# VDW_Type:              DFT-D2
+# XC_Type:               XC_GGA_XC_PBE
+XC_Type:                 XC_LDA_XC_TETER93
+
+PW_Solver:             LOBPCG
+# PW_Solver:             PPCG
+# PW_Solver:             eigs
+# PW_Solver:             CheFSI
+
+DG_Solver:             eigs
+
+Ecut_Wavefunction:     20.0
+
+ALB_Num:               4
+
+begin Super_Cell 
+    10  10  40
+end Super_Cell
+
+begin Element_Size 
+    1  1  4
+end Element_Size
+
+buffer_Size:  1
+
+Atom_Types_Num:        1
+
+Atom_Type:             1
+
+begin Atom_Red:
+   -0.07   0.00   0.10
+    0.07   0.00   0.10
+   -0.07   0.00   0.35
+    0.07   0.00   0.35
+   -0.07   0.00   0.60
+    0.07   0.00   0.60
+   -0.07   0.00   0.85
+    0.07   0.00   0.85
+end Atom_Red
+
+Use_Atom_Density: 0  # default 0
+
+Periodize_Potential: 0
+
+
+Output_Density_DG:  0
+Density_Output_File_DG:  DENSITY_DG
+
+Output_Potential_DG:  0
+Potential_Output_File_DG:  POTENTIAL_DG
+
+Output_Atom_Struct_DG:  0  
+Atom_Struct_Output_File_DG:  ATOMSTRUCT_DG
+
+Output_ALB_Elem_Uniform:  0
+ALB_Elem_Uniform_Output_File:  ALB_UNIFORM
+
+Output_ALB_Elem_LGL:  0
+ALB_Elem_LGL_Output_File:  ALB_LGL
+
+Output_Wfn_ExtElem:  0
+Wavefun_ExtElem_Output_File:  WAVEFUN_EXTELEM
+
+Output_Pot_ExtElem:  0
+Potential_ExtElem_Output_File:  POTENTIAL_EXTELEM
+
+
+Restart_Wfn:  0
+Restart_Wfn_File:    WAVEFUN_EXTELEM
+
+Restart_Density:  0
+Restart_Density_File:    DENSITY_DG

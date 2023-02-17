@@ -1,19 +1,17 @@
-function Dpsi = DiffPsi(HamDG, numGrid, psi, d)
-% HAMILTONIANDG/DIFFPSI calculate differentiation of basis function
+function Dpsi = DiffPsi(DMat, numGrid, psi, d)
+% DIFFPSI calculate differentiation of basis function
 %
-%    Dpsi = DiffPsi(HamDG, numGrid, psi, d) differentiate the basis
+%    Dpsi = DiffPsi(DMat, numGrid, psi, d) differentiate the basis
 %    functions psi on a certain element with grids numGrid along the
-%    dimension d. 
+%    dimension d, DMat is the differential matrix. 
 %    NOTE: numGrid should be a vector.
 %
-%    See also HamiltonianDG.
+%    See also HamiltonianDG, CalculateDGMatrix.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
-
-DMat = HamDG.grid.DMat;
 
 if d == 1
     vecXpsi = reshape(psi, numGrid(1), numGrid(2)*numGrid(3));

@@ -190,8 +190,8 @@ function xcRef
 %    ev93     Engel-Vosko, Phys. Rev. B 47, 13164 (1993)
 %
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 end

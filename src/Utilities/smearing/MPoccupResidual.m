@@ -6,8 +6,8 @@ function y = MPoccupResidual(Tsigma, MPSmearingOrder, eigvals, fermiMu, numSolve
 %
 %    See also SCFDG/CalculateOccupationRate.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 x = (eigvals - fermiMu) ./ Tsigma;

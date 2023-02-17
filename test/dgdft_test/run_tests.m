@@ -27,6 +27,8 @@ failFlagList(count) = test_vdw;
 count = count + 1;
 failFlagList(count) = test_xc_gga_pbe;
 
+count = count + 1;
+failFlagList(count) = test_buffer_size;
 
 
 outputFid = fopen('test_report.txt', 'w');

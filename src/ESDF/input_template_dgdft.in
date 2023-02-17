@@ -1,66 +1,71 @@
 # input file for DGDFT
 
-# ---------------------------------------------------------
+# -----------------------------------------------------------
 # Basic Parameters 
 # (all listed below are filling with their default values)
-# ---------------------------------------------------------
+# -----------------------------------------------------------
 
-Ecut_Wavefunction:    40.0
-Density_Grid_Factor:    2.0
-LGL_Grid_Factor:    2.0
+Ecut_Wavefunction:  40.0
+Density_Grid_Factor:  2.0
+LGL_Grid_Factor:  2.0
 
-ALBNum:    4  # number of basis per element, use same value each element
-# number of basis per element, use different value each element, 
-# if ALB_Num_Element is used, it will overwrite ALBNum
+# NOTE: if number of basis per element are the same, use ALBNum,
+# if number of basis per element are different, use ALB_Num_Element.
+# If ALB_Num_Element is used, it will overwrite ALBNum
+
+ALBNum:  4
+
 begin ALB_Num_Element
 #
 end ALB_Num_Element
 
-Temperature:    300.0
-Extra_States:    0
-Unused_States:    0
-Extra_Electron:    0
 
-Mixing_MaxDim:    9
-Mixing_Type:    anderson
+Temperature:  300.0
+Extra_States:  0
+Unused_States:  0
+Extra_Electron:  0
+
+Mixing_MaxDim:  9
+Mixing_Type:  anderson
 # options: anderson, kerker+anderson
-Mixing_Variable:    potential
+Mixing_Variable:  potential
 # options: potential, density
-Mixing_StepLength:    0.8
+Mixing_StepLength:  0.8
 
-Pseudo_Type:    HGH
+Pseudo_Type:  HGH
 # options: HGH, ONCV
 begin UPF_File
-#
+# path to UPF files, default data from ppdata/default
 end UPF_File
-# default data from ppdata/default
 
-XC_Type:    XC_LDA_XC_TETER93
-# options: XC_LDA_XC_TETER93, XC_LDA_XC_PZ, XC_GGA_XC_PBE, XC_HYB_GGA_XC_HSE06(TODO)
+XC_Type:  XC_LDA_XC_TETER93
+# options: XC_LDA_XC_TETER93, XC_LDA_XC_PZ, XC_GGA_XC_PBE
 
-VDW_Type:   None
+VDW_Type: None
 # options: None, DFT-D2 (used with GGA type XC)
 
-Smearing_Scheme:    FD
+Smearing_Scheme:  FD
 # options: FD, GB, MP
 
+Buffer_Size:  1
+# buffer size is number of elements in the buffer region along +(-) x(y,z) direction.
 
 
-PW_Solver:    LOBPCG
+PW_Solver:  LOBPCG
 # options: LOBPCG, eigs, PPCG, CheFSI
 
 # parameter of PW_Solver PPCG
-PPCG_sbSize:    1  
+PPCG_sbSize:  1  
 
 # parameters of PW_Solver CheFSI
-First_SCF_PWDFT_ChebyFilterOrder:    40
-First_SCF_PWDFT_ChebyCycleNum:    5
-General_SCF_PWDFT_ChebyFilterOrder:    35
-PWDFT_Cheby_use_wfn_ecut_filt:    1
+First_SCF_PWDFT_ChebyFilterOrder:  40
+First_SCF_PWDFT_ChebyCycleNum:  5
+General_SCF_PWDFT_ChebyFilterOrder:  35
+PWDFT_Cheby_use_wfn_ecut_filt:  1
 
 
-DG_Solver:    eigs
-# options: eigs, LOBPCG(TODO), PPCG(TODO), CheFSI(TODO), PEXSI(TODO)
+DG_Solver:  eigs
+# options: eigs
 
 
 
@@ -68,46 +73,77 @@ DG_Solver:    eigs
 # Control Parameters
 # -------------------------------------
 
-SCF_Inner_Tolerance:    1e-4
-SCF_Inner_MinIter:    1
-SCF_Inner_MaxIter:    1
-SCF_Outer_Tolerance:    1e-6
-SCF_Outer_MinIter:    3
-SCF_Outer_MaxIter:    30
-SCF_Outer_Energy_Tolerance:    1e-4  # TODO
+SCF_Inner_Tolerance:  1e-4
+SCF_Inner_MinIter:  1
+SCF_Inner_MaxIter:  1
+SCF_Outer_Tolerance:  1e-6
+SCF_Outer_MinIter:  3
+SCF_Outer_MaxIter:  30
+SCF_Outer_Energy_Tolerance:  1e-4
 
-Eig_Tolerance:    1e-20
-Eig_Min_Tolerance:    1e-3
-Eig_MinIter:    2
-Eig_MaxIter:    3
-SVD_Basis_Tolerance:    1e-6
+Eig_Tolerance:  1e-20
+Eig_Min_Tolerance:  1e-3
+Eig_MinIter:  2
+Eig_MaxIter:  3
+SVD_Basis_Tolerance:  1e-6
 
-Penalty_Alpha:    20.0
+Penalty_Alpha:  20.0
+
 
 
 # -------------------------------------
 # User Options
 # -------------------------------------
 
-Use_Atom_Density:    0    # use with ONCV type pseudopotential
-Use_VLocal:    0  # currently not support
-Restart_Density:    0
-Restart_Wfn:    0
-Output_Density:    0
-Output_Struct_Info:    0
-Output_Wfn_ExtElem:    0
-Eig_Tolerance_Dynamic:    0
-Calculate_APosteriori_Each_SCF:    0  # currently not support
+Use_Atom_Density:  0  # use with ONCV type pseudopotential
+Use_VLocal:  0  # currently not support
+Eig_Tolerance_Dynamic:  0
+Calculate_APosteriori_Each_SCF:  0  # currently not support
 
-Periodize_Potential:    0
+Periodize_Potential:  0
 begin Distance_Periodize
 #    xxx yyy zzz
 end Distance_Periodize
 
 
-# -------------------------------------------
+# NOTE: The following input/output options are prefix of data file names
+# since IO datas are stored in element-wise format, data over different 
+# elements will be saved in different files with file name format 
+#   prefix + "_" + num2str(elemIdx) + ".mat" 
+
+Output_Density_DG:  0
+Density_Output_File_DG:  DENSITY_DG
+
+Output_Potential_DG:  0
+Potential_Output_File_DG:  POTENTIAL_DG
+
+Output_Atom_Struct_DG:  0  
+Atom_Struct_Output_File_DG:  ATOMSTRUCT_DG
+
+Output_ALB_Elem_Uniform:  0
+ALB_Elem_Uniform_Output_File:  ALB_UNIFORM
+
+Output_ALB_Elem_LGL:  0
+ALB_Elem_LGL_Output_File:  ALB_LGL
+
+Output_Wfn_ExtElem:  0
+Wavefun_ExtElem_Output_File:  WAVEFUN_EXTELEM
+
+Output_Pot_ExtElem:  0
+Potential_ExtElem_Output_File:  POTENTIAL_EXTELEM
+
+
+Restart_Density:  0
+Restart_Density_File:  # default value is decided by Density_Output_File_DG
+
+Restart_Wfn:  0
+Restart_Wfn_File:  # default value is decided by Wavefun_ExtElem_Output_File
+
+
+
+# ---------------------------------------------
 # User-provided Data (have no default value) 
-# -------------------------------------------
+# ---------------------------------------------
 
 begin Super_Cell
 #    xxx  yyy  zzz 
@@ -119,10 +155,8 @@ end Element_Size
 
 Atom_Types_Num:  
 
-# Atom Positions: 
-# list each type atom with corresponding atom position one by one in the 
-# following template
-# 
+# NOTE: list atom positions in different types one by one in the following template 
+#
 # Atom_Type:  type1
 # begin Atom_Red
 #    xxx  yyy  zzz 

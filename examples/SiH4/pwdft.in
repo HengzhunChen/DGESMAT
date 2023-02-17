@@ -6,13 +6,14 @@ SCF_Outer_MaxIter:    20
 
 PW_Solver:    LOBPCG
 # PW_Solver:   CheFSI
-XC_Type:    XC_LDA_XC_TETER93
+# XC_Type:    XC_LDA_XC_TETER93
 # XC_Type:   XC_LDA_XC_PZ
+XC_Type:   XC_GGA_XC_PBE
 
 Pseudo_Type:  ONCV
 
 
-Ecut_Wavefunction:     12.5
+Ecut_Wavefunction:     20
 
 begin Super_Cell
     10,   10,   10
@@ -36,4 +37,4 @@ begin Atom_Red
 end Atom_Red
 
 
-Use_VLocal:  0
+Use_VLocal:  1

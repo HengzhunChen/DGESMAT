@@ -3,47 +3,37 @@ function varargout = pwdft_main(varargin)
 %    Read parameters of PWDFT from inputFile, then run the routines of 
 %    PWDFT and print data and outcome to outFile.
 %
-%    pwdft(inputFile) runs the routines of PWDFT according to the data from
-%    file inputFile and print the outcome to default output file statfile.
+%    pwdft_main(inputFile) runs the routines of PWDFT according to the 
+%    data from file inputFile and print the outcome to default output file 
+%    statfile.
 %
-%    pwdft(inputFile, outFile) runs the routines of PWDFT according to the
-%    data from file inputFile and print the outcome to file outFile.
+%    pwdft_main(inputFile, outFile) runs the routines of PWDFT according to
+%    the data from file inputFile and print the outcome to file outFile.
 %
-%    pwdft(inputFile, outFile, debugFile) runs the routines of PWDFT
-%    according to data from file inputFile and print the outcome to file
-%    outFile, debugFile is used when you set the print ID in InfoPrint() 
-%    equals to 2 and prints some data you need into file debugFile.
-%
-%    info = pwdft(inputFile, __, __) runs the routines of PWDFT and output
-%    some information into struct info, which contains variables Etot, 
-%    Evdw and Efree. 
+%    info = pwdft_main(inputFile, __) runs the routines of PWDFT and 
+%    output some information into struct info, which contains variables 
+%    Etot, Evdw and Efree. 
 %
 %    See also InfoPrint.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
 if nargin == 1
     inputFile = varargin{1};
     outFile = "statfile";
-    debugFile = "";
 elseif nargin == 2
     inputFile = varargin{1};
     outFile = varargin{2};
-    debugFile = "";
-elseif nargin == 3
-    inputFile = varargin{1};
-    outFile = varargin{2};
-    debugFile = varargin{3};
 else
     error('Wrong number of arguments');
 end
 
 % setup global variables
-define_global(outFile, debugFile);
-global outFid debugFid esdfParam;
+define_global(outFile);
+global outFid;
 
 InfoPrint(1, "run pwdft \n");
 InfoPrint(1, "inFile:    %s \n", inputFile);
@@ -55,11 +45,11 @@ InfoPrint(1, "inFile:    %s \n", inputFile);
 
 % Initialize input parameters
 timeStart = tic;
-ESDFReadInput( inputFile ); 
-timeEnd = toc( timeStart );
+esdfParam = ESDFReadInput(inputFile); 
+timeEnd = toc(timeStart);
 InfoPrint([0, 1], 'Time for reading the input file is %8f [s]\n', timeEnd);
 
-ESDFPrintInput();
+ESDFPrintInput(esdfParam);
 
 
 %========================================================================
@@ -86,7 +76,7 @@ psi.wavefun = rand( size(psi.wavefun) );
 eigSol = EigenSolverKS(hamKS, psi);
 
 % SCF
-scf = SCF(eigSol);
+scf = SCF(esdfParam, eigSol);
 
 
 %=======================================================================
@@ -103,9 +93,6 @@ InfoPrint(1, 'end of single pwdft \n');
 InfoPrint(1, 'outFile:    %s \n', outFile);
 
 fclose(outFid);
-if ~isempty(debugFid)
-    fclose(debugFid);
-end
 
 
 %=======================================================================

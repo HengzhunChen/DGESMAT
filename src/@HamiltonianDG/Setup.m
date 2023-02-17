@@ -1,15 +1,12 @@
-function HamDG = Setup(HamDG)
+function HamDG = Setup(HamDG, esdfParam)
 % HAMILTONIANDG/SETUP initializes HamiltonianDG object HamDG with data 
-%    from global variable esdfParam.
+%    from ESDFInputParam object esdfParam.
 % 
 %    See also HamiltonianDG, Domain, Atom, ESDFInputParam.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
-
-
-global esdfParam;
 
 
 % **********************************************************************
@@ -21,6 +18,7 @@ HamDG.atomList          = esdfParam.basic.atomList;
 HamDG.pseudoType        = esdfParam.basic.pseudoType;
 HamDG.XCType            = esdfParam.basic.XCType;
 HamDG.numExtraState     = esdfParam.basic.numExtraState;
+HamDG.ecutWavefun       = esdfParam.basic.ecutWavefunction;
 HamDG.numElem           = esdfParam.DG.numElem;
 HamDG.penaltyAlpha      = esdfParam.DG.penaltyAlpha;
 
@@ -42,8 +40,7 @@ HamDG.fft = Fourier(esdfParam.basic.domain);
 % DG Hamiltonian matrix
 numElemTotal = prod(HamDG.numElem);
 HamDG.HMat = cell(numElemTotal, numElemTotal);
-HamDG.sizeHMat = prod(HamDG.numElem) * esdfParam.DG.numALBElem(1, 1, 1);
-HamDG.hasConvertSparse = 0;
+HamDG.sizeHMat = sum(esdfParam.DG.numALBElem);
 
 
 
@@ -51,66 +48,57 @@ HamDG.hasConvertSparse = 0;
 %  Partition of elements
 % ***********************************************************************
 
+numElem = HamDG.numElem;
+numElemTotal = prod(numElem);
+
 HamDG.grid.numLGLGridElem    = esdfParam.DG.numGridLGL;
-HamDG.grid.numUniformGridElem = HamDG.domain.numGrid ./ HamDG.numElem;
-HamDG.grid.numUniformGridElemFine = HamDG.domain.numGridFine ./ HamDG.numElem;
+HamDG.grid.numUniformGridElem = HamDG.domain.numGrid ./ numElem;
+HamDG.grid.numUniformGridElemFine = HamDG.domain.numGridFine ./ numElem;
 
 % Setup the element domains
-numElem = HamDG.numElem;
-HamDG.domainElem = Domain.empty();
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            key = [i-1, j-1, k-1];
-            dm = Domain();
-            dm.length = HamDG.domain.length ./ numElem;
-            dm.numGrid = HamDG.grid.numUniformGridElem;
-            dm.numGridFine = HamDG.grid.numUniformGridElemFine;
-            dm.posStart = dm.length .* key;
-            HamDG.domainElem(i, j, k) = dm;
-        end
-    end
+HamDG.domainElem = cell(numElemTotal, 1);
+for elemIdx = 1 : numElemTotal
+    [i, j, k] = ElemIdxToKey(elemIdx, numElem);
+    key = [i-1, j-1, k-1];
+    dm = Domain();
+    dm.length = HamDG.domain.length ./ numElem;
+    dm.numGrid = HamDG.grid.numUniformGridElem;
+    dm.numGridFine = HamDG.grid.numUniformGridElemFine;
+    dm.posStart = dm.length .* key;
+    HamDG.domainElem{elemIdx} = dm;
 end
 
 
 % Partition by element
-HamDG.density     = cell(numElem);
-HamDG.densityLGL  = cell(numElem);
-HamDG.vext        = cell(numElem);
-HamDG.vhart       = cell(numElem);
-HamDG.vxc         = cell(numElem);
-HamDG.epsxc       = cell(numElem);
-HamDG.vtot        = cell(numElem);
-HamDG.vtotLGL     = cell(numElem);
+HamDG.density     = cell(numElemTotal, 1);
+HamDG.densityLGL  = cell(numElemTotal, 1);
+HamDG.vext        = cell(numElemTotal, 1);
+HamDG.vhart       = cell(numElemTotal, 1);
+HamDG.vxc         = cell(numElemTotal, 1);
+HamDG.epsxc       = cell(numElemTotal, 1);
+HamDG.vtot        = cell(numElemTotal, 1);
+HamDG.vtotLGL     = cell(numElemTotal, 1);
 
 % Initialize quantities
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            numGridElemFineTotal = prod(HamDG.grid.numUniformGridElemFine);
-            numLGLGridElemTotal  = prod(HamDG.grid.numLGLGridElem);
-            
-            HamDG.density{i, j, k}     = zeros(numGridElemFineTotal, 1);
-            HamDG.densityLGL{i, j, k}  = zeros(numLGLGridElemTotal, 1);
-            HamDG.vext{i, j, k}        = zeros(numGridElemFineTotal, 1);
-            HamDG.vhart{i, j, k}       = zeros(numGridElemFineTotal, 1);
-            HamDG.vxc{i, j, k}         = zeros(numGridElemFineTotal, 1);
-            HamDG.epsxc{i, j, k}       = zeros(numGridElemFineTotal, 1);
-            HamDG.vtot{i, j, k}        = zeros(numGridElemFineTotal, 1);
-            HamDG.vtotLGL{i, j, k}     = zeros(numLGLGridElemTotal, 1);
-        end
-    end
+for elemIdx = 1 : numElemTotal
+    numGridElemFineTotal = prod(HamDG.grid.numUniformGridElemFine);
+    numLGLGridElemTotal  = prod(HamDG.grid.numLGLGridElem);
+    
+    HamDG.density{elemIdx}     = zeros(numGridElemFineTotal, 1);
+    HamDG.densityLGL{elemIdx}  = zeros(numLGLGridElemTotal, 1);
+    HamDG.vext{elemIdx}        = zeros(numGridElemFineTotal, 1);
+    HamDG.vhart{elemIdx}       = zeros(numGridElemFineTotal, 1);
+    HamDG.vxc{elemIdx}         = zeros(numGridElemFineTotal, 1);
+    HamDG.epsxc{elemIdx}       = zeros(numGridElemFineTotal, 1);
+    HamDG.vtot{elemIdx}        = zeros(numGridElemFineTotal, 1);
+    HamDG.vtotLGL{elemIdx}     = zeros(numLGLGridElemTotal, 1);
 end
 
 HamDG.gradDensity = cell(dimDef(), 1);
 for d = 1 : dimDef()
-    HamDG.gradDensity{d} = cell(numElem);
-    for k = 1 : numElem(3)
-        for j = 1 : numElem(2)
-            for i = 1 : numElem(1)
-                HamDG.gradDensity{d}{i, j, k} = zeros(numGridElemFineTotal, 1);
-            end
-        end
+    HamDG.gradDensity{d} = cell(numElemTotal, 1);
+    for elemIdx = 1 : numElemTotal
+        HamDG.gradDensity{d}{elemIdx} = zeros(numGridElemFineTotal, 1);
     end
 end
 
@@ -127,22 +115,19 @@ end
 HamDG.grid.uniformGrid = UniformMesh(HamDG.domain);
 HamDG.grid.uniformGridFine = UniformMeshFine(HamDG.domain);
 
-HamDG.grid.uniformGridElem = cell(numElem);
-HamDG.grid.uniformGridElemFine = cell(numElem);
-HamDG.grid.LGLGridElem = cell(numElem);
+HamDG.grid.uniformGridElem = cell(numElemTotal, 1);
+HamDG.grid.uniformGridElemFine = cell(numElemTotal, 1);
+HamDG.grid.LGLGridElem = cell(numElemTotal, 1);
 
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            HamDG.grid.uniformGridElem{i, j, k} = ...
-                UniformMesh(HamDG.domainElem(i, j, k));
-            HamDG.grid.uniformGridElemFine{i, j, k} = ...
-                UniformMeshFine(HamDG.domainElem(i, j, k));
-            HamDG.grid.LGLGridElem{i, j, k} = ...
-                LGLMesh(HamDG.domainElem(i, j, k), HamDG.grid.numLGLGridElem);
-        end
-    end
+for elemIdx = 1 : numElemTotal
+    HamDG.grid.uniformGridElem{elemIdx} = ...
+        UniformMesh( HamDG.domainElem{elemIdx} );
+    HamDG.grid.uniformGridElemFine{elemIdx} = ...
+        UniformMeshFine( HamDG.domainElem{elemIdx} );
+    HamDG.grid.LGLGridElem{elemIdx} = ...
+        LGLMesh( HamDG.domainElem{elemIdx}, HamDG.grid.numLGLGridElem );
 end
+
 
 % ----------------------------------------------------------------------
 % Generate the differentiation matrix on the LGL grid
@@ -170,74 +155,23 @@ end
 %
 % NOTE: This assumes uniform mesh used for each element.
 
-numLGL = HamDG.grid.numLGLGridElem;
-numUniform = HamDG.grid.numUniformGridElem;
-numUniformFine = HamDG.grid.numUniformGridElemFine;
+domainLength = HamDG.domainElem{1}.length;
+oldGrid = HamDG.grid.LGLGridElem{1};
 
-EPS = 1e-13;  % small stabilization parameter
+newGrid = HamDG.grid.uniformGridElem{1};
+HamDG.grid.LGLToUniformMat = GenerateLagrangeInterpMat(...
+        newGrid, oldGrid, domainLength);
 
-for d = 1 : dimDef()
-    LGLGrid = HamDG.grid.LGLGridElem{1, 1, 1}{d};
-    uniformGrid = HamDG.grid.uniformGridElem{1, 1, 1}{d};
-    uniformGridFine = HamDG.grid.uniformGridElemFine{1, 1, 1}{d};
-    
-    % stabilization constant factor, according to Berrut and Trefethen
-    stableFac = 0.25 * HamDG.domainElem(1, 1, 1).length(d);
+newGrid = HamDG.grid.uniformGridElemFine{1};
+HamDG.grid.LGLToUniformMatFine = GenerateLagrangeInterpMat(...
+        newGrid, oldGrid, domainLength);
 
-    % ! Here row vector or column vector is important for computation
-        
-    lambda = ( LGLGrid - LGLGrid' ) ./ stableFac;
-    lambda(1 : numLGL(d)+1 : end) = 1;  % fix diagonal value
-    lambda = prod(lambda);
-    lambda = 1 ./ lambda;  % size is (1, numLGL(d))
-    
-    % denominator
-    denom = repmat(lambda, numUniform(d), 1) ./ (uniformGrid' - LGLGrid + EPS);
-    denom = sum(denom, 2);  % size is (numUniform(d), 1)
-    denomFine = repmat(lambda, numUniformFine(d), 1) ./ (uniformGridFine' - LGLGrid + EPS);
-    denomFine = sum(denomFine, 2);  % size is (numUniformFine(d), 1)
-    
-    localMat = (lambda ./ denom) .* (1 ./ (uniformGrid' - LGLGrid + EPS));
-    % size is (numUniform(d), numLGL(d))
-    localMatFine = (lambda ./ denomFine) .* (1 ./ (uniformGridFine' - LGLGrid + EPS));
-    % size is (numUniformFine(d), numLGL(d))
-    
-    HamDG.grid.LGLToUniformMat{d} = localMat;
-    HamDG.grid.LGLToUniformMatFine{d} = localMatFine;
-    
-% used for reference
-%     for i = 1 : numLGL(d)
-%         lambda(i) = 1.0;
-%         for j = 1 : numLGL(d)
-%             if j ~= i 
-%                 lambda(i) = lambda(i) * (LGLGrid(i) - LGLGrid(j)) / stableFac; 
-%             end
-%         end
-%         lambda(i) = 1.0 / lambda(i);
-%         for j = 1 : numUniform(d)
-%             denom(j) = denom(j) + lambda(i) / ( uniformGrid(j) - LGLGrid(i) + EPS );
-%         end
-%         for j = 1 : numUniformFine(d)
-%             denomFine(j) = denomFine(j) + lambda(i) / ( uniformGridFine(j) - LGLGrid(i) + EPS );
-%         end
-%     end
-% 
-%     for i = 1 : numLGL(d)
-%         for j = 1 : numUniform(d)
-%             localMat( j, i ) = (lambda(i) / ( uniformGrid(j) - LGLGrid(i) + EPS )) / denom(j); 
-%         end
-%         for j = 1 : numUniformFine(d)
-%             localMatFine( j, i ) = (lambda(i) / ( uniformGridFine(j) - LGLGrid(i) + EPS )) / denomFine(j);
-%         end
-%     end
-    
-end
 
 % ----------------------------------------------------------------------
 % Compute the LGL weights at 1D, 2D, 3D
 % ----------------------------------------------------------------------
 
-dmElemlength = HamDG.domainElem(1, 1, 1).length;
+dmElemlength = HamDG.domainElem{1}.length;
 numGrid = HamDG.grid.numLGLGridElem;
 
 % compute the integration weights
@@ -247,20 +181,22 @@ for d = 1 : dimDef()
     HamDG.grid.LGLWeight1D{d} = 0.5 * dmElemlength(d) .* LGLWeight1D;
 end
 
+LGLWeight1D = HamDG.grid.LGLWeight1D;
+
 % 2D: faces labeled by normal vectors, i.e.
 % yz face : 1
 % xz face : 2
 % xy face : 3
 
 % yz face
-HamDG.grid.LGLWeight2D{1} = (HamDG.grid.LGLWeight1D{2})' .* HamDG.grid.LGLWeight1D{3}; 
+HamDG.grid.LGLWeight2D{1} = (LGLWeight1D{2})' .* LGLWeight1D{3}; 
 % xz face
-HamDG.grid.LGLWeight2D{2} = (HamDG.grid.LGLWeight1D{1})' .* HamDG.grid.LGLWeight1D{3};
+HamDG.grid.LGLWeight2D{2} = (LGLWeight1D{1})' .* LGLWeight1D{3};
 % xy face
-HamDG.grid.LGLWeight2D{3} = (HamDG.grid.LGLWeight1D{1})' .* HamDG.grid.LGLWeight1D{2};
+HamDG.grid.LGLWeight2D{3} = (LGLWeight1D{1})' .* LGLWeight1D{2};
 
 % 3D
-[X, Y, Z] = ndgrid(HamDG.grid.LGLWeight1D{1}, HamDG.grid.LGLWeight1D{2}, HamDG.grid.LGLWeight1D{3});
+[X, Y, Z] = ndgrid(LGLWeight1D{1}, LGLWeight1D{2}, LGLWeight1D{3});
 HamDG.grid.LGLWeight3D = X .* Y .* Z;
 
 

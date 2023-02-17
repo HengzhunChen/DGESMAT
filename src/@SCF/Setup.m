@@ -1,15 +1,38 @@
-function scf = Setup(scf, eigSol)
+function scf = Setup(scf, esdfParam, eigSol)
 % SCF/SETUP initializes SCF object scf with EigenSolverKS object eigSol and
-%    global variable esdfParam.
+%    ESDFInputParam object esdfParam.
 %
 %    See also SCF, EigenSolverKS, ESDFInputParam.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
-global esdfParam;
+% --------------------- user options ----------------------------------
+
+userOptionPW = esdfParam.userOption.PW;
+
+scf.userOption.isOutputWavefun    = userOptionPW.isOutputWavefun;
+scf.userOption.isOutputDensity    = userOptionPW.isOutputDensity;
+scf.userOption.isOutputPotential  = userOptionPW.isOutputPotential;
+scf.userOption.isOutputAtomStruct = userOptionPW.isOutputAtomStruct;
+
+scf.userOption.isUseVLocal = esdfParam.userOption.general.isUseVLocal;
+
+
+% --------------- IO data file names -------------------------------
+
+dataFileIO = esdfParam.dataFileIO;
+
+scf.dataFileIO.wavefunPW    = dataFileIO.wavefunPW;
+scf.dataFileIO.densityPW    = dataFileIO.densityPW;
+scf.dataFileIO.potentialPW  = dataFileIO.potentialPW;
+scf.dataFileIO.atomStructPW = dataFileIO.atomStructPW;
+
+scf.dataFileIO.restartDensity = dataFileIO.restartDensity;
+scf.dataFileIO.restartWfn     = dataFileIO.restartWfn;
+
 
 % --------------------  basic parameters  -------------------------------
 
@@ -17,9 +40,8 @@ scf.Tbeta  = esdfParam.basic.Tbeta;
 scf.eigSol = eigSol;
 
 scf.PWSolver = esdfParam.basic.PWSolver;
-% Chebyshev Filtering related parameters
-scf.CheFSI = esdfParam.PW.CheFSI;
-scf.isChebyInIonDyn = 0;
+scf.PPCGsbSize = esdfParam.PW.PPCGsbSize;
+scf.CheFSI = esdfParam.PW.CheFSI;  % Chebyshev Filtering parameters
 
 
 % ---------------------  control variables ------------------------------
@@ -31,8 +53,6 @@ scf.controlVar.eigMinTolerance       = esdfParam.control.eigMinTolerance;
 scf.controlVar.eigMaxIter            = esdfParam.control.eigMaxIter;
 scf.controlVar.scfTolerance          = esdfParam.control.scfOuterTolerance;
 scf.controlVar.scfMaxIter            = esdfParam.control.scfOuterMaxIter;
-scf.controlVar.scfPhiMaxIter         = esdfParam.hybrid.scfPhiMaxIter;
-scf.controlVar.scfPhiTolerance       = esdfParam.hybrid.scfPhiTolerance;
 scf.controlVar.isEigToleranceDynamic = esdfParam.userOption.general.isPWeigTolDynamic;
 
 
@@ -48,18 +68,12 @@ scf.mixing.dfMat = zeros(ntotFine, scf.mixing.mixMaxDim);
 scf.mixing.dvMat = zeros(ntotFine, scf.mixing.mixMaxDim);
 
 
-% -----------------------  restart  ----------------------------------
-
-scf.restart.DensityFileName   = 'DENSITY.mat';
-scf.restart.WfnFileName       = 'WAVEFUN.mat';
-
-
 % -------------------------- Density ----------------------------------
 
 if esdfParam.userOption.general.isRestartDensity
-    reStartData = load(scf.restart.DensityFileName);
+    reStartData = load(scf.dataFileIO.restartDensity);
     scf.eigSol.hamKS.density = reStartData.density;
-    InfoPrint(0, 'Density restarted from file %s \n', scf.restart.DensityFileName);
+    InfoPrint(0, 'Density restarted from file %s \n', scf.dataFileIO.restartDensity);
 
 else % using the zero initial guess
     if esdfParam.userOption.general.isUseAtomDensity
@@ -107,12 +121,12 @@ if ~esdfParam.userOption.general.isRestartWfn
     occ = ones(npsi, 1);
     scf.eigSol.hamKS.occupationRate = occ;
 else
-    reStartData = load(scf.restart.WfnFileName);
+    reStartData = load(scf.dataFileIO.restartWfn);
 
     scf.eigSol.psi.wavefun = reStartData.wavefun;
     scf.eigSol.hamKS.occupationRate = reStartData.occupationRate;
 
-    InfoPrint(0, 'Wavefunction restarted from file %s \n', scf.restart.WfnFileName);
+    InfoPrint(0, 'Wavefunction restarted from file %s \n', scf.dataFileIO.restartWfn);
 end
     
 

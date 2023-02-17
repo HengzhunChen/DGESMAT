@@ -4,13 +4,12 @@ function [EVdw, forceVdw] = CalculateVdwEnergyAndForce(HamKS)
 %
 %    See also HamiltonianKS/CalculatePseudoPotential.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 % NOTE: only some types of exchange-correlation are supported here.
 
-global esdfParam;
 
 atomList = HamKS.atomList;
 dm = HamKS.domain;
@@ -18,7 +17,7 @@ EVdw = 0;
 forceVdw = zeros(length(atomList), dimDef());
 
 
-if esdfParam.basic.VDWType == "DFT-D2"
+if HamKS.VDWType == "DFT-D2"
     % vdw_nspecies = 55;
     vdw_d = 20.0;
     vdw_tol_default = 1e-10;

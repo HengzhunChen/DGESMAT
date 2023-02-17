@@ -1,21 +1,25 @@
-function HamKS = Setup(HamKS)
+function HamKS = Setup(HamKS, esdfParam)
 % HAMILTONIANKS/SETUP initializes HamiltonianKS object HamKS with data 
 %    from global variable esdfParam.
 % 
 %    See also HamiltonianKS, Domain, Atom, ESDFInputParam.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
-global esdfParam;
+HamKS.userOption.isUseVLocal = esdfParam.userOption.general.isUseVLocal;
+
+HamKS.isDGDFT = esdfParam.isDGDFT;
+
+HamKS.ecutWavefunction = esdfParam.basic.ecutWavefunction;
 
 % FIXME Hard coded
 HamKS.numSpin = 2;
 
 HamKS.numExtraState = esdfParam.basic.numExtraState;
-
+HamKS.numExtraElectron = esdfParam.basic.extraElectron;
 
 ntotFine = HamKS.domain.NumGridTotalFine();
 dim = dimDef();
@@ -28,7 +32,7 @@ end
 
 
 HamKS.pseudoCharge = zeros(ntotFine, 1);
-if esdfParam.userOption.general.isUseVLocal
+if HamKS.userOption.isUseVLocal
     HamKS.vLocalSR = zeros(ntotFine, 1);
     HamKS.gaussianCharge = zeros(ntotFine, 1);
 end
@@ -38,12 +42,9 @@ HamKS.vtot  = zeros(ntotFine, 1);
 HamKS.epsxc = zeros(ntotFine, 1);
 HamKS.vxc   = zeros(ntotFine, 1);
 
-% initialize the XC functionals
-HamKS.isHybrid = false;
-HamKS.XCType = esdfParam.basic.XCType;
-if contains(HamKS.XCType, "HYB")
-    HamKS.isHybrid = true;
-end
+HamKS.XCType     = esdfParam.basic.XCType;
+HamKS.pseudoType = esdfParam.basic.pseudoType;
+HamKS.VDWType    = esdfParam.basic.VDWType;
 
 
 % Set up wavefunction filter options, useful for CheFSI in PWDFT
@@ -54,18 +55,6 @@ else
     HamKS.ecutFilter.isApplyFilter = 0;
     HamKS.ecutFilter.wfnCutoff = esdfParam.basic.ecutWavefunction;
 end    
-
-
-% parameters for hybrid
-HamKS.hybrid.DFType              = esdfParam.hybrid.DFType;
-HamKS.hybrid.DFKmeansWFType      = esdfParam.hybrid.DFKmeansWFType;
-HamKS.hybrid.DFKmeansWFAlpha     = esdfParam.hybrid.DFKmeansWFAlpha;
-HamKS.hybrid.DFKmeansTolerance   = esdfParam.hybrid.DFKmeansTolerance;
-HamKS.hybrid.DFKmeansMaxIter     = esdfParam.hybrid.DFKmeansMaxIter;
-HamKS.hybrid.DFNumMu             = esdfParam.hybrid.DFNumMu;
-HamKS.hybrid.DFNumGaussianRandom = esdfParam.hybrid.DFNumGaussianRandom;
-HamKS.hybrid.DFTolerance         = esdfParam.hybrid.DFTolerance;
-HamKS.hybrid.exxDivergenceType   = esdfParam.hybrid.exxDivergenceType;
 
 
 end

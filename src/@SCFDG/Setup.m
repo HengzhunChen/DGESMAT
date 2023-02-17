@@ -1,20 +1,53 @@
-function scfDG = Setup(scfDG, hamDG, vecEigSol, fft, ptable)
+function scfDG = Setup(scfDG, esdfParam, hamDG, vecEigSol, fft, ptable)
 % SCFDG/SETUP initializes SCFDG object scfDG.
 %
-%    scfDG = Setup(scfDG, hamDG, vecEigSol, fft, ptable) returns a SCFDG
-%    object with respect to HamiltonianDG object hamdG, cell vecEigSol
-%    containing EigenSolverKS object over each extended element, Fourier
-%    object fft and PeriodTable object ptable.
+%    scfDG = Setup(scfDG, esdfParam, hamDG, vecEigSol, fft, ptable) 
+%    returns a SCFDG object with respect to ESDFInputParam object esdfParam, 
+%    HamiltonianDG object hamdG, cell vecEigSol containing EigenSolverKS 
+%    object over each extended element, Fourier object fft and PeriodTable 
+%    object ptable.
 %
 %    See also SCFDG, HamiltonianDG, EigenSolverKS, Fourier, PeriodTable, 
 %    ESDFInputParam.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 
-global esdfParam;
+% --------------------------- user options ----------------------------------
+
+userOptionDG = esdfParam.userOption.DG;
+
+scfDG.userOption.isOutputDensity        = userOptionDG.isOutputDensity;
+scfDG.userOption.isOutputPotential      = userOptionDG.isOutputPotential;
+scfDG.userOption.isOutputAtomStruct     = userOptionDG.isOutputAtomStruct;
+scfDG.userOption.isOutputALBElemUniform = userOptionDG.isOutputALBElemUniform;
+scfDG.userOption.isOutputALBElemLGL     = userOptionDG.isOutputALBElemLGL;
+scfDG.userOption.isOutputWfnExtElem     = userOptionDG.isOutputWfnExtElem;
+scfDG.userOption.isOutputPotExtElem     = userOptionDG.isOutputPotExtElem;
+
+scfDG.userOption.isPeriodizePotential = userOptionDG.isPeriodizePotential;
+scfDG.userOption.isCalculateAPosterioriEachSCF = userOptionDG.isCalculateAPosterioriEachSCF;
+
+
+% --------------------------- IO data file names -----------------------------
+
+dataFileIO = esdfParam.dataFileIO;
+
+scfDG.dataFileIO.densityDG    = dataFileIO.densityDG;
+scfDG.dataFileIO.potentialDG  = dataFileIO.potentialDG;
+scfDG.dataFileIO.atomStructDG = dataFileIO.atomStructDG;
+
+scfDG.dataFileIO.albElemUniform = dataFileIO.albElemUniform;
+scfDG.dataFileIO.albElemLGL     = dataFileIO.albElemLGL;
+
+scfDG.dataFileIO.wfnExtElem = dataFileIO.wfnExtElem;
+scfDG.dataFileIO.potExtElem = dataFileIO.potExtElem;
+
+scfDG.dataFileIO.restartWfn     = dataFileIO.restartWfn;
+scfDG.dataFileIO.restartDensity = dataFileIO.restartDensity;
+
 
 
 % *********************************************************************
@@ -26,6 +59,7 @@ scfDG.hamDG     = hamDG;
 scfDG.vecEigSol = vecEigSol;
 scfDG.fft       = fft;
 scfDG.ptable    = ptable;
+scfDG.bufferSize = esdfParam.DG.bufferSize;
 
 scfDG.XCType            = esdfParam.basic.XCType;
 scfDG.VDWType           = esdfParam.basic.VDWType;
@@ -37,25 +71,9 @@ scfDG.numUnusedState    = esdfParam.basic.numUnusedState;
 scfDG.Tbeta             = esdfParam.basic.Tbeta;
 scfDG.Tsigma            = 1.0 / scfDG.Tbeta;
 scfDG.numElem           = esdfParam.DG.numElem;
-scfDG.ecutWavefunction  = esdfParam.basic.ecutWavefunction;
-scfDG.densityGridFactor = esdfParam.basic.densityGridFactor;
-scfDG.LGLGridFactor     = esdfParam.DG.LGLGridFactor;
 
 scfDG.periodicPotential.distancePeriodize ...
                         = esdfParam.DG.distancePeriodize;
-scfDG.potentialBarrier.BarrierW = esdfParam.DG.potentialBarrierW;
-scfDG.potentialBarrier.BarrierS = esdfParam.DG.potentialBarrierS;
-scfDG.potentialBarrier.BarrierR = esdfParam.DG.potentialBarrierR;
-
-% FIXME fixed ratio between the size of the extended element and the
-% element
-for d = 1 : dimDef()
-    if scfDG.numElem(d) > 1
-        scfDG.extElemRatio(d) = 3;
-    else
-        scfDG.extElemRatio(d) = 1;
-    end
-end
 
 
 % ---------------------- control parameters ---------------------------
@@ -74,68 +92,10 @@ scfDG.controlVar.scfOuterEnergyTolerance = esdfParam.control.scfOuterEnergyToler
 scfDG.controlVar.SVDBasisTolerance       = esdfParam.control.SVDBasisTolerance;
 scfDG.controlVar.isPWeigToleranceDynamic = esdfParam.userOption.general.isPWeigTolDynamic;
 
-
-% ------------------- Chebyshev Filter --------------------------------
-
-% Chebyshev filtering related parameters for PWDFT on extended element
+% Chebyshev filtering parameters for PW subproblem on extended element
 scfDG.CheFSIPW = esdfParam.PW.CheFSI;
-
-% Chebyshev filerting related parameters for DG solver
-if scfDG.DGSolver == "CheFSI"
-
-    scfDG.CheFSIDG.firstFilterOrder   = esdfParam.DG.CheFSI.firstFilterOrder;
-    scfDG.CheFSIDG.firstCycleNum      = esdfParam.DG.CheFSI.firstCycleNum;
-    scfDG.CheFSIDG.secondOuterIter    = esdfParam.DG.CheFSI.secondOuterIter;
-    scfDG.CheFSIDG.secondFilterOrder  = esdfParam.DG.CheFSI.secondFilterOrder;
-    scfDG.CheFSIDG.secondCycleNum     = esdfParam.DG.CheFSI.secondCycleNum;
-    scfDG.CheFSIDG.generalFilterOrder = esdfParam.DG.CheFSI.generalFilterOrder;
-    scfDG.CheFSIDG.generalCycleNum    = esdfParam.DG.CheFSI.generalCycleNum;
-    
-    scfDG.ionDyn.isChebyInIonDyn = 0;
-    scfDG.ionDyn.ionDynIter = 0;
-
-    % ChebyShev polynomial filtered complementary subspace iteration
-    % Only accessed if CheFSI is in use
-    scfDG.CheFSIDG.isUseCompSubspace = esdfParam.DG.CheFSI.isUseCompSubspace;  % default 0
-
-    % Safeguard to ensure that CS strategy is called only after at least 
-    % one general CheFSI cycle has been called
-    % This allows the initial guess vectors to be copied
-    if scfDG.CheFSIDG.isUseCompSubspace && scfDG.CheFSIDG.secondOuterIter < 2
-        scfDG.CheFSIDG.secondOuterIter = 2;
-    end
-
-    CompSubspaceParam = esdfParam.DG.CheFSI.CompSubpace;
-    scfDG.CheFSIDG.CompSubspace.nStates = ...
-        CompSubspaceParam.nStates;  % Defaults to a fraction of extra states
-    scfDG.CheFSIDG.CompSubspace.ionIterRegularChebyFreq = ...
-        CompSubspaceParam.ionIterRegularChebyFreq;  % Defaults to 20
-    scfDG.CheFSIDG.CompSubspace.biggerGridDimFac = ...
-        CompSubspaceParam.biggerGridDimFac;  % Defaults to 1;
-
-    % LOBPCG for top states option
-    scfDG.CheFSIDG.CompSubspace.lobpcgIter = ...
-        CompSubspaceParam.lobpcgIter;  % Default = 15
-    scfDG.CheFSIDG.CompSubspace.lobpcgTol = ...
-        CompSubspaceParam.lobpcgTol;  % Default = 1e-8
-
-    % CheFSI for top states option
-    scfDG.CheFSIDG.CompSubspace.isHMatTopStatesUseCheby = ...
-        CompSubspaceParam.isHMatTopStatesUseCheby;
-    scfDG.CheFSIDG.CompSubspace.HMatFilterOrder = ...
-        CompSubspaceParam.HMatFilterOrder; 
-    scfDG.CheFSIDG.CompSubspace.HMatCycleNum = ...
-        CompSubspaceParam.HMatCycleNum; 
-    scfDG.CheFSIDG.CompSubspace.HMatdeltaFudge = 0.0;
-
-    scfDG.CheFSIDG.CompSubspace.nSolve = ...
-        hamDG.NumExtraState() + scfDG.CheFSIDG.CompSubspace.nStates;     
-else
-    scfDG.CheFSIDG.isUseCompSubspace = 0;
-end
-
-% -------------- end of ChebyShev polynomial filter -------------------
-
+% PPCG parameter for PW subproblem on extended element
+scfDG.PPCGsbSize = esdfParam.PW.PPCGsbSize;
 
 % -----------------------  Mixing  -------------------------------------
 
@@ -145,34 +105,32 @@ scfDG.mix.mixType       = esdfParam.basic.mixType;
 scfDG.mix.mixStepLength = esdfParam.basic.mixStepLength;
 
 numElem = scfDG.numElem;
-scfDG.mix.mixOuterSave = cell(numElem);
-scfDG.mix.mixInnerSave = cell(numElem);
+numElemTotal = prod(numElem);
+scfDG.mix.mixOuterSave = cell(numElemTotal, 1);
+scfDG.mix.mixInnerSave = cell(numElemTotal, 1);
 
-scfDG.mix.dfOuterMat = cell(numElem);
-scfDG.mix.dvOuterMat = cell(numElem);
-scfDG.mix.dfInnerMat = cell(numElem);
-scfDG.mix.dvInnerMat = cell(numElem);
+scfDG.mix.dfOuterMat = cell(numElemTotal, 1);
+scfDG.mix.dvOuterMat = cell(numElemTotal, 1);
+scfDG.mix.dfInnerMat = cell(numElemTotal, 1);
+scfDG.mix.dvInnerMat = cell(numElemTotal, 1);
 
-scfDG.vtotLGLSave = cell(numElem);
+scfDG.vtotLGLSave = cell(numElemTotal, 1);
 
 mixMaxDim = scfDG.mix.mixMaxDim;
-for k = 1 : numElem(3)
-    for j = 1 : numElem(2)
-        for i = 1 : numElem(1)
-            numUniformGridTotalFine = prod( hamDG.grid.numUniformGridElemFine );
-            
-            scfDG.mix.mixOuterSave{i, j, k} = zeros(numUniformGridTotalFine, 1);
-            scfDG.mix.mixInnerSave{i, j, k} = zeros(numUniformGridTotalFine, 1);
-            
-            scfDG.mix.dfOuterMat{i, j, k} = zeros(numUniformGridTotalFine, mixMaxDim);
-            scfDG.mix.dvOuterMat{i, j, k} = zeros(numUniformGridTotalFine, mixMaxDim);
-            scfDG.mix.dfInnerMat{i, j, k} = zeros(numUniformGridTotalFine, mixMaxDim);
-            scfDG.mix.dvInnerMat{i, j, k} = zeros(numUniformGridTotalFine, mixMaxDim);
-            
-            numLGLGridTotal = prod( hamDG.grid.numLGLGridElem );
-            scfDG.vtotLGLSave{i, j, k} = zeros(numLGLGridTotal, 1);
-        end
-    end
+
+for elemIdx = 1 : numElemTotal
+    numUniformGridTotalFine = prod( hamDG.grid.numUniformGridElemFine );
+    
+    scfDG.mix.mixOuterSave{elemIdx} = zeros(numUniformGridTotalFine, 1);
+    scfDG.mix.mixInnerSave{elemIdx} = zeros(numUniformGridTotalFine, 1);
+    
+    scfDG.mix.dfOuterMat{elemIdx} = zeros(numUniformGridTotalFine, mixMaxDim);
+    scfDG.mix.dvOuterMat{elemIdx} = zeros(numUniformGridTotalFine, mixMaxDim);
+    scfDG.mix.dfInnerMat{elemIdx} = zeros(numUniformGridTotalFine, mixMaxDim);
+    scfDG.mix.dvInnerMat{elemIdx} = zeros(numUniformGridTotalFine, mixMaxDim);
+    
+    numLGLGridTotal = prod( hamDG.grid.numLGLGridElem );
+    scfDG.vtotLGLSave{elemIdx} = zeros(numLGLGridTotal, 1);
 end
 
 
@@ -190,33 +148,6 @@ else
 end
 
 
-% ------------------------  Restart  ------------------------------------
-
-% restart the density in the global domain
-scfDG.restart.DensityFileName = "DENSITY.mat";
-% restart the wavefunctions in the extended element
-scfDG.restart.WfnExtElemFileName = "WFNEXTELEM.mat";
-
-
-% --------------  Ionic iteration related parameters  -------------------
-
-% Ionic iteration number
-scfDG.ionDyn.IonDynIter = 0;  
-% Whether to use energy based SCF convergence
-scfDG.ionDyn.isUseEnergySCFconvergence = 0;  
- % Tolerance for SCF total energy for energy based SCF convergence
-scfDG.ionDyn.MDscfEtotDiffTol = esdfParam.ionDyn.MDscfEtotDiffTol; 
-% Tolerance for SCF band energy for energy based SCF convergence
-scfDG.ionDyn.MDscfEbandDiffTol = esdfParam.ionDyn.MDscfEbandDiffTol;  
-
-scfDG.ionDyn.MDscfEtot = 0.0;
-scfDG.ionDyn.MDscfEtotOld = 0.0;
-scfDG.ionDyn.MDscfEtotDiff = 0.0;
-scfDG.ionDyn.MDscfEband = 0.0;
-scfDG.ionDyn.MDscfEbandOld = 0.0; 
-scfDG.ionDyn.MDscfEbandDiff = 0.0;
-
-
 % --------------  end of basic SCFDG paramters  -----------------------
 
 
@@ -225,6 +156,7 @@ scfDG.ionDyn.MDscfEbandDiff = 0.0;
 % *********************************************************************
 
 numElem = scfDG.numElem;
+numElemTotal = prod(numElem);
 
 % assume the initial error is O(1)
 scfDG.scfOuterNorm = 1.0;
@@ -237,25 +169,25 @@ scfDG.efreeDifPerAtom = 100.0;
 % -------------------------- density ---------------------------------
 
 if esdfParam.userOption.general.isRestartDensity
-    reStartData = load(scfDG.restart.DensityFileName);
-    density = reStartData.density;
+    density = cell(numElemTotal);
     sumDensity = 0;
-    for k = 1 : numElem(3)
-        for j = 1 : numElem(2)
-            for i = 1 : numElem(1)
-                if size(density{i, j, k}) ~= size(scfDG.hamDG.density{i, j, k})
-                    error('The size of restarting density does not match with current setup');
-                end
-                sumDensity = sumDensity + sum(density{i, j, k});
-            end
+    restartFilePrefix = scfDG.dataFileIO.restartDensity;
+    for elemIdx = 1 : numElemTotal
+        fileName = restartFilePrefix + "_" + num2str(elemIdx) + ".mat";
+        restartData = load(fileName);
+        densityElem = restartData.densityElem;
+        if size(densityElem) ~= size(scfDG.hamDG.density{elemIdx})
+            error('The size of restarting density does not match with current setup');
         end
+        density{elemIdx} = densityElem;
+        sumDensity = sumDensity + sum(density{elemIdx});
     end
     scfDG.hamDG.density = density;
 
     InfoPrint(0, "Restart density. Sum of density      = ", ...
               sumDensity * scfDG.domain.Volume() / scfDG.domain.NumGridTotalFine() );
     
-else  % using zero intial guess
+else  % using zero initial guess
     if esdfParam.userOption.general.isUseAtomDensity
         atomDensity = scfDG.hamDG.CalculateAtomDensity(scfDG.ptable);        
         scfDG.hamDG.atomDensity = atomDensity;
@@ -269,30 +201,22 @@ else  % using zero intial guess
         EPS = 1e-6;
         
         % make sure that the electron density is positive
-        for k = 1 : numElem(3)
-            for j = 1 : numElem(2)
-                for i = 1 : numElem(1)
-                    pseudoCharge = scfDG.hamDG.pseudoCharge{i, j, k};
-                    idxnz = pseudoCharge > EPS;
-                    density = pseudoCharge;
-                    density(~idxnz) = EPS;
-                    scfDG.hamDG.density{i, j, k} = density;
-                    sumDensity = sumDensity + sum(density);
-                    sumPseudoCharge = sumPseudoCharge + sum(pseudoCharge);
-                end
-            end
+        for elemIdx = 1 : numElemTotal
+            pseudoCharge = scfDG.hamDG.pseudoCharge{elemIdx};
+            idxnz = pseudoCharge > EPS;
+            density = pseudoCharge;
+            density(~idxnz) = EPS;
+            scfDG.hamDG.density{elemIdx} = density;
+            sumDensity = sumDensity + sum(density);
+            sumPseudoCharge = sumPseudoCharge + sum(pseudoCharge);
         end
         
         % rescale the density
         InfoPrint( 0, "Initial density. Sum of density      = ",  ...
             sumDensity .* scfDG.domain.Volume() ./ scfDG.domain.NumGridTotalFine() );
-        for k = 1 : numElem(3)
-            for j = 1 : numElem(2)
-                for i = 1 : numElem(1)
-                    scfDG.hamDG.density{i, j, k} = scfDG.hamDG.density{i, j, k} .* ...
-                        (sumPseudoCharge / sumDensity);
-                end
-            end
+        for elemIdx = 1 : numElemTotal
+            scfDG.hamDG.density{elemIdx} = scfDG.hamDG.density{elemIdx} .* ...
+                (sumPseudoCharge / sumDensity);
         end
     end
 end     
@@ -303,17 +227,16 @@ end
 % -------------- wavefunctions in extended element ---------------------
 
 if esdfParam.userOption.general.isRestartWfn
-    reStartData = load(scfDG.restart.WfnExtElemFileName);
-    wfnExtElem = reStartData.wfnExtElem;
-    for k = 1 : numElem(3)
-        for j = 1 : numElem(2)
-            for i = 1 : numElem(1)
-                if size(wfnExtElem{i, j, k}) ~= size(scfDG.vecEigSol{i, j, k}.psi.wavefun)
-                    error('The size of restarting wavefun does not match with current setup');
-                end
-                scfDG.vecEigSol{i, j, k}.psi.wavefun = wfnExtElem{i, j, k};    
-            end
+    restartFilePrefix = scfDG.dataFileIO.restartWfn;
+    for elemIdx = 1 : numElemTotal
+        fileName = restartFilePrefix + "_" + num2str(elemIdx) + ".mat";
+        restartData = load(fileName);
+        wfnExtElem = restartData.wfnExtElem;
+
+        if size(wfnExtElem) ~= size(scfDG.vecEigSol{elemIdx}.psi.wavefun)
+            error('The size of restarting wavefun does not match with current setup');
         end
+        scfDG.vecEigSol{elemIdx}.psi.wavefun = wfnExtElem;    
     end
 else
     % use random initial guess for basis functions in the extended element
@@ -330,11 +253,7 @@ end
 % The interpolation must be performed through a fine Fourier grid 
 % (uniform grid) and then interpolate to the LGL grid.
 
-scfDG.PeriodicUniformToLGLMat = cell(dimDef(), 1);
-scfDG.PeriodicUniformFineToLGLMat = cell(dimDef(), 1);
-scfDG.PeriodicGridExtElemToGridElemMat = cell(dimDef(), 1);
-
-dmExtElem = scfDG.vecEigSol{1, 1, 1}.fft.domain;
+dmExtElem = scfDG.vecEigSol{1}.fft.domain;
 dmElem = Domain();
 for d = 1 : dimDef()
     dmElem.length(d) = scfDG.domain.length(d) / numElem(d);
@@ -343,126 +262,36 @@ for d = 1 : dimDef()
     % posStart relative to the extended element
     dmExtElem.posStart(d) = 0;
     if numElem(d) > 1
-        dmElem.posStart(d) = dmElem.length(d);
+        dmElem.posStart(d) = dmElem.length(d) * esdfParam.DG.bufferSize;
     else
         dmElem.posStart(d) = 0;
     end
 end
 
 numLGL             = hamDG.grid.numLGLGridElem;
-numUniform         = dmExtElem.numGrid;
-numUniformFine     = dmExtElem.numGridFine;
-numUniformFineElem = dmElem.numGridFine;
 lengthUniform      = dmExtElem.length;
     
 LGLGrid             = LGLMesh(dmElem, numLGL);
 UniformGrid         = UniformMesh(dmExtElem);
 UniformGridFine     = UniformMeshFine(dmExtElem);
-UniformGridFineElem = UniformMeshFine(dmElem);
 
-for d = 1 : dimDef()    
-    ng = numUniform(d);
-    grid = (0:ng-1) - ng *( (0:ng-1) > ng/2 );
-    KGrid = grid * 2 * pi ./ lengthUniform(d);  % row vector
-    
-    tempMat = LGLGrid{d}' - UniformGrid{d};
-    tempTns = repmat(tempMat, [1, 1, numUniform(d)]); 
-    % size [numLGL(d), numUniform(d), numUniform(d)]
-    tempKGrid = repmat(KGrid, [numLGL(d), 1, numUniform(d)]);
-    tempKGrid = permute(tempKGrid, [1, 3, 2]);  
-    % size [numLGL(d), numUniform(d), numUniform(d)], i-th page is all KGrid(i)
-    localMat = sum( cos(tempTns .* tempKGrid), 3 ) ./ numUniform(d);  
-    % size [numLGL(d), numUniform(d)]
-
-    tempMatFineElem = UniformGridFineElem{d}' - UniformGrid{d};
-    tempTnsFineElem = repmat(tempMatFineElem, [1, 1, numUniform(d)]);
-    tempKGrid = repmat(KGrid, [numUniformFineElem(d), 1, numUniform(d)]);
-    tempKGrid = permute(tempKGrid, [1, 3, 2]);
-    localMatFineElem = sum( cos(tempTnsFineElem .* tempKGrid), 3 ) ./ numUniform(d);
-    % size [numUniformFineElem(d), numUniform(d)]
-    
-    scfDG.PeriodicUniformToLGLMat{d} = localMat;
-    scfDG.PeriodicGridExtElemToGridElemMat{d} = localMatFineElem;
-    
-    % used for reference
-%     for i = 1 : numLGL(d)
-%         for j = 1 : numUniform(d)
-%             localMat(i, j) = 0.0;
-%             for k = 1 : numUniform(d)
-%                 localMat(i, j) = localMat(i, j) + ...
-%                     cos( KGrid(k) * ( LGLGrid(d)(i) - UniformGrid(d)(j) ) ) / numUniform(d);
-%             end
-%         end
-%     end     
-end
-
-for d = 1 : dimDef()
-    ng = numUniformFine(d);
-    grid = (0:ng-1) - ng *( (0:ng-1) > ng/2 );
-    KGridFine = grid * 2 * pi ./ lengthUniform(d);  % row vector
-
-    tempMatFine = LGLGrid{d}' - UniformGridFine{d};
-    tempTnsFine = repmat(tempMatFine, [1, 1, numUniformFine(d)]); 
-    % size [numLGL(d), numUniformFine(d), numUniformFine(d)]
-    tempKGridFine = repmat(KGridFine, [numLGL(d), 1, numUniformFine(d)]);
-    tempKGridFine = permute(tempKGridFine, [1, 3, 2]);  
-    % size [numLGL(d), numUniformFine(d), numUniformFine(d)], i-th page is all KGridFine(i)    
-    localMatFine = sum( cos(tempTnsFine .* tempKGridFine), 3 ) ./ numUniformFine(d);  
-    % size [numLGL(d), numUniformFine(d)]
-    
-    scfDG.PeriodicUniformFineToLGLMat{d} = localMatFine;
-end
+scfDG.PeriodicUniformToLGLMat = GenerateFourierInterpMat(...
+    LGLGrid, UniformGrid, lengthUniform);
+scfDG.PeriodicUniformFineToLGLMat = GenerateFourierInterpMat(...
+    LGLGrid, UniformGridFine, lengthUniform);
 
 % ----------------- end of grid transfer matrix -------------------------
 
 
-% ---------------------- potential barrier ---------------------------
-
-% Whether to apply potential barrier in the extended element. CANNOT be
-% used together with periodization option.
-if esdfParam.userOption.DG.isPotentialBarrier
-    DIM = dimDef();
-    scfDG.potentialBarrier.vBarrier = cell(DIM, 1);
-    barrierS = scfDG.potentialBarrier.BarrierS;
-    barrierW = scfDG.potentialBarrier.BarrierW;
-    barrierR = scfDG.potentialBarrier.BarrierR;
-
-    dmExtElem = scfDG.vecEigSol{1, 1, 1}.fft.domain;
-    gridpos = UniformMeshFine(dmExtElem);
-
-    for d = 1 : DIM
-        dmlength = dmExtElem.length(d);
-        numGridFine = dmExtElem.numGridFine(d);
-        posStart = dmExtElem.posStart(d);
-        center = posStart + dmlength / 2;
-
-        % FIXME
-        EPS = 1.0;  % for stability reason
-        vBarrier = zeros(numGridFine, 1);
-
-        dist = abs(gridpos{d} - center);
-        % only apply the barrier for region outside barrierR
-        idx = dist > barrierR;
-        vBarrier(idx) = barrierS ...
-            .* exp( -barrierW ./ (dist(idx) - barrierR) ) ...
-            ./ (dist(idx) - dmlength/2 - EPS).^2 ; 
-        scfDG.potentialBarrier.vBarrier{d} = vBarrier;
-    end
-end
-            
-% ------------------ end of potential barrier -------------------------
-
-
 % --------------------- periodize the potential ------------------------
 
-% Whether to periodize the potential in the extended element. CANNOT be
-% used together with barrier option.
+% Whether to periodize the potential in the extended element.
 if esdfParam.userOption.DG.isPeriodizePotential
     DIM = dimDef();
     scfDG.periodicPotential.vBubble = cell(DIM, 1);
     distancePeriodize = scfDG.periodicPotential.distancePeriodize;
     
-    dmExtElem = scfDG.vecEigSol{i, j, k}.fft.domain;
+    dmExtElem = scfDG.vecEigSol{1}.fft.domain;
     gridpos = UniformMeshFine( dmExtElem );
 
     for d = 1 : DIM

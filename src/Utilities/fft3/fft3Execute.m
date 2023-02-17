@@ -7,8 +7,8 @@ function y = fft3Execute(x, numGrid, vol)
 %
 %    See also ifft3Execute, Fourier, Spinor/fft3.
 
-%  Copyright (c) 2022 Hengzhun Chen and Yingzhou Li, 
-%                     Fudan University
+%  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
+%                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
 ntot = prod(numGrid);
