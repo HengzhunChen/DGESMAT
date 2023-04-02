@@ -13,6 +13,7 @@ tol = 1e-2;
 
 checkListName = {...
     'H2', ...
+    'LiNa', ...
     };
 checkList = zeros(length(checkListName), 1);
 checkCount = 0;
@@ -24,7 +25,21 @@ inputFile = "./test_data/data_H2/H2_test_mixing_density.in";
 outputFile = "./test_data/data_H2/H2_statfile";
 info = dgdft_main(inputFile, outputFile);
 
-Eref = -4.54401003e+00;
+Eref = -4.55239406e+00;
+
+checkCount = checkCount + 1;
+checkList(checkCount) = abs(info.Etot - Eref) / abs(Eref) < tol;
+check_report(checkListName{checkCount}, Eref, info.Etot, checkList(checkCount));
+
+
+%%
+% Check for LiNa molecule (8 atoms)
+
+inputFile = "./test_data/data_LiNa/LiNa_test_mixing_density.in";
+outputFile = "./test_data/data_LiNa/LiNa_statfile";
+info = dgdft_main(inputFile, outputFile);
+
+Eref = -1.98239258e+02;
 
 checkCount = checkCount + 1;
 checkList(checkCount) = abs(info.Etot - Eref) / abs(Eref) < tol;

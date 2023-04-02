@@ -1,5 +1,7 @@
 function failFlag = test_pwsolver_chefsi()
 % test PW solver: CheFSI (Chebyshev-filtered subspace iteration)
+% NOTE: since Etot from package ScalES doesn't converge well, 
+% use data solved by LOBPCG
 
 clear;
 clear class;
@@ -25,7 +27,7 @@ inputFile = "./test_data/data_H2O/H2O_test_pwsolver_chefsi.in";
 outputFile = "./test_data/data_H2O/H2O_statfile";
 info = pwdft_main(inputFile, outputFile);
 
-Eref = -3.20267028e+00;
+Eref = -1.7056121664305230e+01;
 
 checkCount = checkCount + 1;
 checkList(checkCount) = abs(info.Etot - Eref) / abs(Eref) < tol;
@@ -39,7 +41,7 @@ inputFile = "./test_data/data_SiH4/SiH4_test_pwsolver_chefsi.in";
 outputFile = "./test_data/data_SiH4/SiH4_statfile";
 info = pwdft_main(inputFile, outputFile);
 
-Eref = -2.95104585e+00;
+Eref = -6.1871060221953984e+00;
 
 checkCount = checkCount + 1;
 checkList(checkCount) = abs(info.Etot - Eref) / abs(Eref) < tol;

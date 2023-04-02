@@ -2,18 +2,14 @@
 
 Mixing_Type: anderson
 
-SCF_Outer_MaxIter:    20
+SCF_Outer_MaxIter:    30
 
 PW_Solver:    LOBPCG
-# PW_Solver:   CheFSI
-# XC_Type:    XC_LDA_XC_TETER93
-# XC_Type:   XC_LDA_XC_PZ
-XC_Type:   XC_GGA_XC_PBE
+XC_Type:    XC_GGA_XC_PBE
 
-Pseudo_Type:  ONCV
+SCF_Outer_Tolerance:  1e-8
 
-
-Ecut_Wavefunction:     20
+Ecut_Wavefunction:    100
 
 begin Super_Cell
     10,   10,   10
@@ -36,5 +32,9 @@ begin Atom_Red
     0    0    0
 end Atom_Red
 
+Pseudo_Type: HGH
 
-Use_VLocal:  1
+begin UPF_File 
+    ../../ppdata/hgh_pbe_upf/H.pbe-hgh.UPF
+    ../../ppdata/hgh_pbe_upf/Si.pbe-hgh.UPF
+end UPF_File

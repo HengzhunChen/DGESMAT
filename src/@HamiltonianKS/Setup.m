@@ -9,8 +9,6 @@ function HamKS = Setup(HamKS, esdfParam)
 %  This file is distributed under the terms of the MIT License.
 
 
-HamKS.userOption.isUseVLocal = esdfParam.userOption.general.isUseVLocal;
-
 HamKS.isDGDFT = esdfParam.isDGDFT;
 
 HamKS.ecutWavefunction = esdfParam.basic.ecutWavefunction;
@@ -32,10 +30,7 @@ end
 
 
 HamKS.pseudoCharge = zeros(ntotFine, 1);
-if HamKS.userOption.isUseVLocal
-    HamKS.vLocalSR = zeros(ntotFine, 1);
-    HamKS.gaussianCharge = zeros(ntotFine, 1);
-end
+HamKS.vLocalSR     = zeros(ntotFine, 1);
 HamKS.vext  = zeros(ntotFine, 1);
 HamKS.vhart = zeros(ntotFine, 1);
 HamKS.vtot  = zeros(ntotFine, 1);

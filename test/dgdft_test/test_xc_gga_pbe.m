@@ -24,7 +24,7 @@ inputFile = "./test_data/data_H2/H2_test_xc_gga_pbe.in";
 outputFile = "./test_data/data_H2/H2_statfile";
 info = dgdft_main(inputFile, outputFile);
 
-Eref = -4.65834400e+00;
+Eref = -4.66852500e+00;
 
 checkCount = checkCount + 1;
 checkList(checkCount) = abs(info.Etot - Eref) / abs(Eref) < tol;

@@ -17,13 +17,14 @@ Mixing_MaxDim:  9
 Mixing_Type:  anderson
 # options: anderson, kerker+anderson
 Mixing_Variable:  potential
-# options: potential, density
-Mixing_StepLength:  0.8
+# options: potential
+Mixing_StepLength:  0.5
 
-Pseudo_Type:  HGH
-# options: HGH, ONCV
+# NOTE: Pseudo_Type will be overwrited by UPF_File if it is provided
+Pseudo_Type:  ONCV
+# options: ONCV, HGH
 begin UPF_File
-# path to UPF files, default data from ppdata/default
+# path to UPF files, default data from /ppdata according to Pseudo_Type
 end UPF_File
 
 XC_Type:  XC_LDA_XC_TETER93
@@ -66,8 +67,7 @@ Eig_MaxIter:  3
 # User Options
 # -------------------------------------
 
-Use_Atom_Density:  0    # use with ONCV type pseudopotential
-Use_VLocal:  0
+Use_Atom_Density:  1    # use data from UPF_File
 Eig_Tolerance_Dynamic:  0
 
 Output_Wavefun_PW:  0
@@ -96,6 +96,11 @@ Restart_Wfn_File:  # default value is decided by Wavefun_Output_File_PW
 begin Super_Cell
 #    xxx  yyy  zzz 
 end Super_Cell
+
+# option: Angstrom unit
+# begin Super_Cell_Angstrom
+#    xxx  yyy  zzz
+# end Super_Cell_Angstrom
 
 Atom_Types_Num:  
 

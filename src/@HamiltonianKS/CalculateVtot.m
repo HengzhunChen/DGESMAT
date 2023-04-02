@@ -7,11 +7,6 @@ function vtot = CalculateVtot(HamKS)
 %                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
-
-if ~HamKS.userOption.isUseVLocal
-    vtot = HamKS.vext + HamKS.vhart + HamKS.vxc;
-else
-    vtot = HamKS.vext + HamKS.vLocalSR + HamKS.vhart + HamKS.vxc;
-end
+vtot = HamKS.vext + HamKS.vLocalSR + HamKS.vhart + HamKS.vxc;
 
 end

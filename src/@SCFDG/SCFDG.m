@@ -17,7 +17,6 @@ classdef SCFDG
 
     properties (SetAccess = private)
         domain
-        ptable
         hamDG
         vecEigSol 
         fft
@@ -38,7 +37,6 @@ classdef SCFDG
         Tsigma
         vtotLGLSave
         EfreeHarris
-        EfreeSecondOrder
         Efree
         Etot
         Ekin
@@ -48,6 +46,8 @@ classdef SCFDG
         Evdw
         EVxc
         Eself
+        EIonSR
+        Eext
         fermi
         forceVdw
 

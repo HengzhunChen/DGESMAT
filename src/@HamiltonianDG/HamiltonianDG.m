@@ -23,27 +23,38 @@ classdef HamiltonianDG
         numSpin
         numExtraState
         numOccupiedState
-        
+
+        XCType
+        VDWType
+
         pseudoType
         pseudoListElem  % pseudo info of each atom over an extended element
         vnlCoef
         vnlDrvCoef
         vnlWeightMap
         
-        pseudoCharge
+        pseudoCharge  % Gaussian compensation charge
         density
         gradDensity
         atomDensity
         densityLGL
         
         vext
+        vLocalSR
         vhart
         vxc
         epsxc
         vtot
         vtotLGL
         
-        XCType
+        EVdw
+        Eself
+        EIonSR
+        Eext
+        
+        forceVdw
+        forceIonSR
+        forceExt
         
         basisLGL
         elemBasisIdx  % index of a basis in total basis function array
@@ -55,6 +66,8 @@ classdef HamiltonianDG
         eigVal
         occupationRate
         eigvecCoef
+
+        userOption
         
     end
     
@@ -78,6 +91,10 @@ classdef HamiltonianDG
                 ...
                 'LGLToUniformMat', [], ...
                 'LGLToUniformMatFine', [] ...
+                );
+
+            H.userOption = struct(...
+                ...
                 );
                             
             switch (nargin)

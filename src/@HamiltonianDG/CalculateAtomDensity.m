@@ -14,10 +14,6 @@ function atomDensity = CalculateAtomDensity(HamDG, ptable)
 %  This file is distributed under the terms of the MIT License.
 
 
-if HamDG.pseudoType == "HGH"
-    error("HGH pseudopotential does not yet support the computation of atomic density!");
-end
-
 ntotFine = HamDG.domain.NumGridTotalFine();
 numAtom = length(HamDG.atomList);
 vol = HamDG.domain.Volume();
@@ -33,7 +29,7 @@ for i = 1 : numAtom
     if ~ptable.pteMap.isKey(atype)
         error('Cannot find the atom type');
     end
-    nelec = nelec + ptable.Zion(atype);
+    nelec = nelec + ptable.Zval(atype);
 end
 if mod(nelec, 2) ~= 0
     error('This is spin-restricted calculation, nelec should be even.');

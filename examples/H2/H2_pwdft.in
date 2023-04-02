@@ -18,9 +18,10 @@ SCF_Outer_MaxIter:     100
 PW_Solver:            LOBPCG
 # PW_Solver:            eigs
 
-# Pseudo_Type:           ONCV
-Pseudo_Type:           HGH
+Pseudo_Type:           ONCV
+# Pseudo_Type:           HGH
 XC_Type:               XC_LDA_XC_TETER93
+use_VLocal:            1
 
 Ecut_Wavefunction:     40
 

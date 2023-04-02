@@ -335,7 +335,7 @@ end
 
 
 % *********************************************************************
-% Calculate the VDW contribution and the force
+% Calculate the force
 % *********************************************************************
 
 timeForceStart = tic;
@@ -343,23 +343,6 @@ InfoPrint(0, '\n Computing forces using eigenvectors ...\n');
 scfDG.hamDG = scfDG.hamDG.CalculateForce();
 timeForceEnd = toc(timeForceStart);
 InfoPrint(0, ' Time for computing the force is %8f [s] \n\n', timeForceEnd);
-
-
-% Calculate the VDW energy
-scfDG.Evdw = 0;
-if scfDG.VDWType == "DFT-D2"
-    [scfDG.Evdw, scfDG.forceVdw] = CalculateVDW(scfDG.hamDG, scfDG.VDWType);
-    % update energy
-    scfDG.Etot = scfDG.Etot + scfDG.Evdw;
-    scfDG.Efree = scfDG.Efree + scfDG.Evdw;
-    scfDG.EfreeHarris = scfDG.EfreeHarris + scfDG.Evdw;
-    scfDG.Ecor = scfDG.Ecor + scfDG.Evdw;
-    
-    % update force
-    for i = 1 : length(scfDG.hamDG.atomList)
-        scfDG.hamDG.atomList(i).force = scfDG.hamDG.atomList(i).force + scfDG.forceVdw(i, :);
-    end
-end
 
 
 % *********************************************************************
@@ -371,7 +354,7 @@ end
 %
 PrintBlock([0, 1], 'Energy');
 
-InfoPrint([0, 1], 'NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EVdw \n');
+InfoPrint([0, 1], 'NOTE:  Ecor  = Exc - EVxc - Ehart - Eself + EIonSR + EVdw + Eext \n');
 InfoPrint([0, 1], '       Etot  = Ekin + Ecor \n');
 InfoPrint([0, 1], '       Efree = Etot + Entropy \n \n');
 

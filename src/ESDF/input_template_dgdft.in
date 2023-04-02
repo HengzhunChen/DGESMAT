@@ -9,11 +9,11 @@ Ecut_Wavefunction:  40.0
 Density_Grid_Factor:  2.0
 LGL_Grid_Factor:  2.0
 
-# NOTE: if number of basis per element are the same, use ALBNum,
+# NOTE: if number of basis per element are the same, use ALB_Num,
 # if number of basis per element are different, use ALB_Num_Element.
-# If ALB_Num_Element is used, it will overwrite ALBNum
+# If ALB_Num_Element is used, it will overwrite ALB_Num
 
-ALBNum:  4
+ALB_Num:  4
 
 begin ALB_Num_Element
 #
@@ -30,12 +30,13 @@ Mixing_Type:  anderson
 # options: anderson, kerker+anderson
 Mixing_Variable:  potential
 # options: potential, density
-Mixing_StepLength:  0.8
+Mixing_StepLength:  0.5
 
-Pseudo_Type:  HGH
-# options: HGH, ONCV
+# NOTE: Pseudo_Type will be overwrited by UPF_File if it is provided
+Pseudo_Type:  ONCV
+# options: ONCV, HGH
 begin UPF_File
-# path to UPF files, default data from ppdata/default
+# path to UPF files, default data from /ppdata according to Pseudo_Type
 end UPF_File
 
 XC_Type:  XC_LDA_XC_TETER93
@@ -95,8 +96,7 @@ Penalty_Alpha:  20.0
 # User Options
 # -------------------------------------
 
-Use_Atom_Density:  0  # use with ONCV type pseudopotential
-Use_VLocal:  0  # currently not support
+Use_Atom_Density:  1    # use data from UPF_File
 Eig_Tolerance_Dynamic:  0
 Calculate_APosteriori_Each_SCF:  0  # currently not support
 
@@ -148,6 +148,11 @@ Restart_Wfn_File:  # default value is decided by Wavefun_ExtElem_Output_File
 begin Super_Cell
 #    xxx  yyy  zzz 
 end Super_Cell
+
+# option: Angstrom unit
+# begin Super_Cell_Angstrom
+#    xxx  yyy  zzz
+# end Super_Cell_Angstrom
 
 begin Element_Size
 #    xxx  yyy  zzz

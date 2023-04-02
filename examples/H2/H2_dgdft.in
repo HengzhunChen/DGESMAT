@@ -21,11 +21,12 @@ Eig_Min_Tolerance:     1e-6
 
 SVD_Basis_Tolerance:   1e-6
 
-Pseudo_Type:           HGH
-# Pseudo_Type:           ONCV
+# Pseudo_Type:           HGH
+Pseudo_Type:           ONCV
 # VDW_Type:              DFT-D2
 # XC_Type:               XC_GGA_XC_PBE
 XC_Type:                 XC_LDA_XC_TETER93
+
 
 PW_Solver:             LOBPCG
 # PW_Solver:             PPCG
@@ -34,7 +35,7 @@ PW_Solver:             LOBPCG
 
 DG_Solver:             eigs
 
-Ecut_Wavefunction:     20.0
+Ecut_Wavefunction:     50.0
 
 ALB_Num:               4
 

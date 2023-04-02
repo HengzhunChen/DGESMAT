@@ -25,7 +25,7 @@ inputFile = "./test_data/data_H2O/H2O_test_pwsolver_ppcg.in";
 outputFile = "./test_data/data_H2O/H2O_statfile";
 info = pwdft_main(inputFile, outputFile);
 
-Eref = -1.71180729e+01;
+Eref = -1.7056118303172727e+01;
 
 checkCount = checkCount + 1;
 checkList(checkCount) = abs(info.Etot - Eref) / abs(Eref) < tol;
@@ -39,7 +39,7 @@ inputFile = "./test_data/data_SiH4/SiH4_test_pwsolver_ppcg.in";
 outputFile = "./test_data/data_SiH4/SiH4_statfile";
 info = pwdft_main(inputFile, outputFile);
 
-Eref = -2.97205179e+00;
+Eref = -6.1871077376212362e+00;
 
 checkCount = checkCount + 1;
 checkList(checkCount) = abs(info.Etot - Eref) / abs(Eref) < tol;

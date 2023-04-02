@@ -61,7 +61,7 @@ totTime = toc(timeStart);
 
 fprintf('\n\n');
 fprintf('=============================================================\n');
-fprintf('                Test for default values\n');
+fprintf('                   Test for buffer size\n');
 fprintf('                     Overall Report\n');
 fprintf('-------------------------------------------------------------\n');
 for it = 1 : length(checkListName)

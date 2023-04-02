@@ -1,9 +1,9 @@
-function [out_r, out_v] = spline_rad(r, v, even)
+function [out_r, out_v] = spline_rad(r, v, parity)
 % SPLINE_RAD Interpolating odd/even functions along the radius direction
 %
 %    [out_r, out_v] = spline_rad(r, v, even) interpolates radial grid r
 %    with value over grid v according to flag even. r Must be non-negative 
-%    and can contain zero. even == 1 for even function and even == 0 for 
+%    and can contain zero. parity == 1 for even function and parity == 0 for 
 %    odd function. After interpolation, new grid out_r contains the same 
 %    number of positive and negative points and does not contain zero, and 
 %    try to avoid the singular behavior near r = 0. out_v is the value over 
@@ -33,7 +33,7 @@ out_r = [-fliplr(rtemp), rtemp];
 vtemp = seval(rtemp, r, v, slpb, slpc, slpd);
 
 vtemp = reshape(vtemp, 1, []);
-if even
+if parity == 1
     out_v = fliplr(vtemp);
 else
     out_v = - fliplr(vtemp);

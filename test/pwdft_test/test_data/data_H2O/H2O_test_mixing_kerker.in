@@ -19,4 +19,6 @@ begin Atom_Red
          0.00       0.00         0.00
 end Atom_Red
 
+Ecut_Wavefunction:    100 
+
 Mixing_Type:    kerker+anderson

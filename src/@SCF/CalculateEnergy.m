@@ -36,10 +36,8 @@ scf.EVxc = EVxc * vol / ntot;
 % Ionic repulsion related energy %
 scf.Eself = hamKS.Eself;
 scf.Ecor = (scf.Exc - scf.EVxc) - scf.Ehart - scf.Eself;
-if scf.userOption.isUseVLocal
-    scf.EIonSR = hamKS.EIonSR;
-    scf.Ecor = scf.Ecor +  scf.EIonSR;
-end
+scf.EIonSR = hamKS.EIonSR;
+scf.Ecor = scf.Ecor +  scf.EIonSR;
 
 % Van der waals energy %
 scf.EVdw = hamKS.EVdw;

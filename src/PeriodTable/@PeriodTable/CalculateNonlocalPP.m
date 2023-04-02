@@ -35,9 +35,9 @@ Rzero = PT.RcutNonlocal(atom.type);
 % Initialize 
 % first count all the pseudopotentials
 numpp = 0;
-n = length(ptentry.NLtypes);
+n = length(ptentry.nltypes);
 for g = 1 : n
-    typ = ptentry.NLtypes(g);
+    typ = ptentry.nltypes(g);
     if typ == 0
         numpp = numpp + 1;
     elseif typ == 1
@@ -91,10 +91,10 @@ if norm(minDist) <= Rzero
 
     % process non-local pseudopotential one by one
     countpp = 0;
-    n = length(ptentry.NLtypes);
+    n = length(ptentry.nltypes);
     for g = 1 : n
-        wgt = ptentry.NLweights(g);
-        typ = ptentry.NLtypes(g);
+        wgt = ptentry.nlweights(g);
+        typ = ptentry.nltypes(g);
         
         idxStart = 10*(g-1) + 1;
 

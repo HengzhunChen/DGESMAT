@@ -1,5 +1,7 @@
 function failFlag = test_periodic_potential()
 % test with periodizing the potential over extended element
+% FIXME: this test just verifies the option Periodize_Potential can 
+% work but not checking the periodic property of the potential.
 
 clear;
 clear class;
@@ -13,6 +15,7 @@ tol = 1e-2;
 
 checkListName = {...
     'H2', ...
+    'LiNa', ...
     };
 checkList = zeros(length(checkListName), 1);
 checkCount = 0;
@@ -24,7 +27,21 @@ inputFile = "./test_data/data_H2/H2_test_periodic_potential.in";
 outputFile = "./test_data/data_H2/H2_statfile";
 info = dgdft_main(inputFile, outputFile);
 
-Eref = -4.54401537e+00;
+Eref = -4.55239400e+00;
+
+checkCount = checkCount + 1;
+checkList(checkCount) = abs(info.Etot - Eref) / abs(Eref) < tol;
+check_report(checkListName{checkCount}, Eref, info.Etot, checkList(checkCount));
+
+
+%%
+% Check for LiNa molecule (8 atoms)
+
+inputFile = "./test_data/data_LiNa/LiNa_test_periodic_potential.in";
+outputFile = "./test_data/data_LiNa/LiNa_statfile";
+info = dgdft_main(inputFile, outputFile);
+
+Eref = -1.98239260e+02;
 
 checkCount = checkCount + 1;
 checkList(checkCount) = abs(info.Etot - Eref) / abs(Eref) < tol;

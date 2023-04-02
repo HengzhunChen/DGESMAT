@@ -19,9 +19,7 @@ begin Atom_Red
          0.00       0.00         0.00
 end Atom_Red
 
-Pseudo_Type:    ONCV
-
-Ecut_Wavefunction:     10
+Ecut_Wavefunction:     100
 
 PW_Solver:  CheFSI
 First_SCF_PWDFT_ChebyFilterOrder:    40

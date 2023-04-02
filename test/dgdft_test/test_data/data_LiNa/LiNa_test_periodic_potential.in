@@ -1,0 +1,38 @@
+# LiNa crystal
+
+begin Super_Cell
+    7.276903        7.276903       29.107614
+end Super_Cell
+
+Atom_Types_Num:        2
+
+Atom_Type:             3
+
+begin Atom_Red
+    0.100000        0.100000        0.025000
+    0.100000        0.100000        0.275000
+    0.100000        0.100000        0.525000
+    0.100000        0.100000        0.775000
+end Atom_Red
+
+Atom_Type:            11
+
+begin Atom_Red
+    0.600000        0.600000        0.150000
+    0.600000        0.600000        0.400000
+    0.600000        0.600000        0.650000
+    0.600000        0.600000        0.900000
+end Atom_Red
+
+
+begin Element_Size
+    1        1        4
+end Element_Size
+
+ALB_Num:              30
+
+Ecut_Wavefunction:    100
+
+SCF_Outer_Tolerance:    1e-8
+
+Periodize_Potential:    1

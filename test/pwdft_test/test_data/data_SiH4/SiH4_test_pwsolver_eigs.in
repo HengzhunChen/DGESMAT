@@ -1,6 +1,6 @@
 # SiH4 molecule
 
-Ecut_Wavefunction:     12.5
+Ecut_Wavefunction:     80
 
 begin Super_Cell
     10    10    10
@@ -24,4 +24,4 @@ begin Atom_Red
 end Atom_Red
 
 PW_Solver:    eigs
-Eig_MaxIter:    50 
+Eig_MaxIter:    80 

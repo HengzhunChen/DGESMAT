@@ -5,7 +5,7 @@ classdef PeriodTable
     %    ptable = PeriodTable(esdfParam) returns a PeriodTable object 
     %    according to info from esdfParam.
     %
-    %    See also ESDFInputParam, ReadUPF, HGH, PTEntry, Atom.
+    %    See also ESDFInputParam, ReadUPF, PTEntry, Atom.
 
     %  Copyright (c) 2022-2023 Hengzhun Chen and Yingzhou Li, 
     %                          Fudan University
@@ -21,21 +21,21 @@ classdef PeriodTable
             'SpinorOrbit_L1', -1, ...
             'SpinorOrbit_L2', -2, ...
             'SpinorOrbit_L3', -3 ...
-            );
+            );  % type of nonlocal projectors
             
-        pteMap  % map, from atomic number to PTEntry
-        splineMap  % map, from atomic number to splines for pseudopotentials
+        pteMap     % map, from atomic number to PTEntry
+        splineMap  % map, from atomic number to spline coefficients for pseudopotentials
+                   % struct of spline see also Setup() function of PeiodTable
 
         userOption = struct(...
-            'isUseVLocal', [] ...
+            ...
             );
     end
 
     methods
         function PT = PeriodTable(esdfParam)
             PT.pteMap = containers.Map('KeyType', 'double', 'ValueType', 'any');
-            PT.splineMap = containers.Map('KeyType', 'double', 'ValueType', 'any'); 
-            PT.userOption.isUseVLocal = esdfParam.userOption.general.isUseVLocal;
+            PT.splineMap = containers.Map('KeyType', 'double', 'ValueType', 'any');
 
             PT = Setup(PT, esdfParam);
         end
@@ -49,9 +49,9 @@ classdef PeriodTable
             end
         end
         
-        function val = RcutPseudoCharge(PT, atomNum)
-            % cutoff radius for the pseudocharge in the real space
-            val = PT.pteMap(atomNum).cutoffs.pseudoCharge;
+        function val = RcutVLocalSR(PT, atomNum)
+            % cutoff radius for VLocal short range part in the real space
+            val = PT.pteMap(atomNum).cutoffs.vLocalSR;
         end
         
         function val = RcutRhoAtom(PT, atomNum)
@@ -78,8 +78,8 @@ classdef PeriodTable
             val = PT.pteMap(atomNum).params.Mass;
         end
         
-        function val = Zion(PT, atomNum)
-            val = PT.pteMap(atomNum).params.Zion;
+        function val = Zval(PT, atomNum)
+            val = PT.pteMap(atomNum).params.Zval;
         end
         
         function val = RGaussian(PT, atomNum)

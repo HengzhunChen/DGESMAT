@@ -12,20 +12,18 @@ function Xfine = CoarseToFine(X, F)
 %                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
-ntot = F.domain.NumGridTotal();
 ntotFine = F.domain.NumGridTotalFine();
 
 x = X.wavefun;
 [~, ncols] = size(x);
 yfine = zeros(ntotFine, ncols);
 
-fac = sqrt( ntot / ntotFine );
 idx = F.idxFineGrid;
-
 y = F * x;
-yfine(idx, :) = y .* fac;
+yfine(idx, :) = y;
 xfine = F' * yfine;
+xfine = real(xfine);
 
-Xfine = Spinor(X.domain, X.numStateList, real(xfine));
+Xfine = Spinor(X.domain, X.numStateList, xfine);
 
 end

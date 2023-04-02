@@ -41,14 +41,6 @@ numElemTotal = prod(numElem);
 numSpin = hamDG.numSpin;
 Ekin = numSpin * sum(eigVal .* occupationRate);    
 
-% self energy part
-Eself = 0;
-atomList = hamDG.atomList;
-for i = 1 : length(atomList)
-    type = atomList(i).type;
-    Eself = Eself + scfDG.ptable.SelfIonInteraction(type);
-end
-
 % Nonlieanr correction part. This part uses the Hartree energy and XC
 % correlation energy from the old electron density.
 
@@ -71,8 +63,18 @@ EVxc  = EVxc  * scfDG.domain.Volume() / scfDG.domain.NumGridTotalFine();
 % use the previous exchange-correlation energy
 Exc = scfDG.Exc;
 
+% Self energy and ionic repulsion energy
+Eself = hamDG.Eself;
+EIonSR = hamDG.EIonSR;
+
+% Van der waals energy
+Evdw = hamDG.EVdw;
+
+% External energy
+Eext = hamDG.Eext;
+
 % Correction energy
-Ecor = (Exc - EVxc) - Ehart - Eself;
+Ecor = (Exc - EVxc) - Ehart - Eself + EIonSR + Evdw + Eext;
 
 % Harris free energy functional
 if hamDG.numOccupiedState == hamDG.NumStateTotal()

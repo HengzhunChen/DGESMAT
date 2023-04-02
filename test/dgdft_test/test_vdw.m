@@ -13,6 +13,7 @@ tol = 1e-2;
 
 checkListName = {...
     'H2', ...
+    'LiNa', ...
     };
 checkList = zeros(length(checkListName), 1);
 checkCount = 0;
@@ -25,6 +26,20 @@ outputFile = "./test_data/data_H2/H2_statfile";
 info = dgdft_main(inputFile, outputFile);
 
 Eref = -1.24809523e-04;
+
+checkCount = checkCount + 1;
+checkList(checkCount) = abs(info.Evdw - Eref) / abs(Eref) < tol;
+check_report(checkListName{checkCount}, Eref, info.Evdw, checkList(checkCount));
+
+
+%%
+% Check for LiNa molecule (8 atoms)
+
+inputFile = "./test_data/data_LiNa/LiNa_test_vdw.in";
+outputFile = "./test_data/data_LiNa/LiNa_statfile";
+info = dgdft_main(inputFile, outputFile);
+
+Eref = -3.13208408e-02;
 
 checkCount = checkCount + 1;
 checkList(checkCount) = abs(info.Evdw - Eref) / abs(Eref) < tol;

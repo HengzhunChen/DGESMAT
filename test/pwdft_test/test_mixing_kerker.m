@@ -25,7 +25,7 @@ inputFile = "./test_data/data_H2O/H2O_test_mixing_kerker.in";
 outputFile = "./test_data/data_H2O/H2O_statfile";
 info = pwdft_main(inputFile, outputFile);
 
-Eref = -1.71180774e+01;
+Eref = -1.7056116996228226e+01;
 
 checkCount = checkCount + 1;
 checkList(checkCount) = abs(info.Etot - Eref) / abs(Eref) < tol;
@@ -39,7 +39,7 @@ inputFile = "./test_data/data_SiH4/SiH4_test_mixing_kerker.in";
 outputFile = "./test_data/data_SiH4/SiH4_statfile";
 info = pwdft_main(inputFile, outputFile);
 
-Eref = -2.97205068e+00;
+Eref = -6.1871025609109953e+00;
 
 checkCount = checkCount + 1;
 checkList(checkCount) = abs(info.Etot - Eref) / abs(Eref) < tol;

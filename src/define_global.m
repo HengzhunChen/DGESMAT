@@ -18,10 +18,7 @@ function define_global(outFile)
 global outFid
 outFid = fopen(outFile, 'w');
 % used in
-% pwdft_main()
-% dgdft_main()
-% InfoPrint()
-% PrintBlock()
+% pwdft_main(), dgdft_main(), InfoPrint(), PrintBlock()
 
 
 %

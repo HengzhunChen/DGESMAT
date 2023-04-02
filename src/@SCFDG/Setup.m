@@ -58,7 +58,6 @@ scfDG.domain    = esdfParam.basic.domain;
 scfDG.hamDG     = hamDG;
 scfDG.vecEigSol = vecEigSol;
 scfDG.fft       = fft;
-scfDG.ptable    = ptable;
 scfDG.bufferSize = esdfParam.DG.bufferSize;
 
 scfDG.XCType            = esdfParam.basic.XCType;
@@ -189,7 +188,7 @@ if esdfParam.userOption.general.isRestartDensity
     
 else  % using zero initial guess
     if esdfParam.userOption.general.isUseAtomDensity
-        atomDensity = scfDG.hamDG.CalculateAtomDensity(scfDG.ptable);        
+        atomDensity = scfDG.hamDG.CalculateAtomDensity(ptable);        
         scfDG.hamDG.atomDensity = atomDensity;
         scfDG.hamDG.density = atomDensity;
         

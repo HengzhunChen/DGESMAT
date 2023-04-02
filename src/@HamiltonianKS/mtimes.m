@@ -13,13 +13,10 @@ function HX = mtimes(H, X)
 
 
 F = H.fft;
-
 if ~F.isInitialized || ~F.isInitializedFine
     error('Fourier is not prepared.');
 end
 
-
-ntot = H.domain.NumGridTotal();
 ntotFine = H.domain.NumGridTotalFine();
 vol = H.domain.Volume();
 
@@ -45,10 +42,9 @@ end
 % add kinetic part in Fourier space and then back to real space
 HX_kg = F * X .* F.gkk ./ 2;
 
-fac = sqrt( ntotFine / ntot );
 idx = F.idxFineGrid;
 yfine = F * HX_p;
-x = yfine(idx, :) .* fac;
+x = yfine(idx, :);
 
 HXg = HX_kg + x;
 HX = F' * HXg;

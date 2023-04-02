@@ -23,7 +23,7 @@ for i = 1 : length(scf.eigSol.eigVal)
 end
 
 InfoPrint(0, '\n');
-InfoPrint(0, 'NOTE:  Ecor  = Exc - EVxc - Ehart -Eself + EIonSR + EVdw + Eext \n');
+InfoPrint(0, 'NOTE:  Ecor  = Exc - EVxc - Ehart - Eself + EIonSR + EVdw + Eext \n');
 InfoPrint(0, '       Etot  = Ekin + Ecor \n');
 InfoPrint(0, '       Efree = Etot + Entropy \n \n');
 

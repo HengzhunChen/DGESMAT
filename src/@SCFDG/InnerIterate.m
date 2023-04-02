@@ -91,6 +91,9 @@ for innerIter = 1 : controlVar.scfInnerMaxIter
     if DGSolver == "eigs"
         sizeHMat = scfDG.hamDG.sizeHMat;
         numEig = scfDG.hamDG.NumStateTotal();
+        if sizeHMat < numEig
+            error('number of ALBs is too small and less than number of states.');
+        end
         if sizeHMat <= 5000
             % for small matrix, use eig() instead of eigs()
             % convert cells from each element into a matrix
@@ -160,12 +163,11 @@ for innerIter = 1 : controlVar.scfInnerMaxIter
     [scfDG.hamDG.density, scfDG.hamDG.densityLGL] = scfDG.hamDG.CalculateDensity();
         
     % -----------------------------------------------------------------
-    % Update the output potential, and the KS and second order accurate
-    % energy
+    % Update the output potential, and the KS energy
     % -----------------------------------------------------------------
     
     % Update the Hartree energy and the exchange correlation energy and
-    % potential for computing the KS energy and the second order energy.
+    % potential for computing the KS energy.
     % NOTE: vtot should not be updated until finishing the computation of
     % the energies.
     
@@ -177,12 +179,6 @@ for innerIter = 1 : controlVar.scfInnerMaxIter
     
     scfDG.hamDG.vhart = scfDG.hamDG.CalculateHartree();    
         
-    % Compute the second order accurate energy functional.
-    % NOTE: In computing the second order energy, the density and the
-    % potential must be the OUTPUT density and potential without ANY
-    % MIXING.
-    scfDG.EfreeSecondOrder = scfDG.CalculateSecondOrderEnergy();
-    
     % Compute the KS energy
     scfDG = scfDG.CalculateKSEnergy();
     

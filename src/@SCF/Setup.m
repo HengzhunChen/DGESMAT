@@ -18,8 +18,6 @@ scf.userOption.isOutputDensity    = userOptionPW.isOutputDensity;
 scf.userOption.isOutputPotential  = userOptionPW.isOutputPotential;
 scf.userOption.isOutputAtomStruct = userOptionPW.isOutputAtomStruct;
 
-scf.userOption.isUseVLocal = esdfParam.userOption.general.isUseVLocal;
-
 
 % --------------- IO data file names -------------------------------
 
@@ -61,6 +59,7 @@ scf.controlVar.isEigToleranceDynamic = esdfParam.userOption.general.isPWeigTolDy
 scf.mixing.mixMaxDim     = esdfParam.basic.mixMaxDim;
 scf.mixing.mixType       = esdfParam.basic.mixType;
 scf.mixing.mixStepLength = esdfParam.basic.mixStepLength;
+scf.mixing.mixVariable   = esdfParam.basic.mixVariable;
 
 ntotFine = esdfParam.basic.domain.NumGridTotalFine();
 scf.vtotNew = zeros(ntotFine, 1);

@@ -17,8 +17,9 @@ for elemIdx = 1 : numElemTotal
     localVext = HamDG.vext{elemIdx};
     localVhart = HamDG.vhart{elemIdx};
     localVxc = HamDG.vxc{elemIdx};
-    
-    vtot{elemIdx} = localVext + localVhart + localVxc;
+    localVLocalSR = HamDG.vLocalSR{elemIdx};
+
+    vtot{elemIdx} = localVext + localVhart + localVxc + localVLocalSR;
 end
 
 end

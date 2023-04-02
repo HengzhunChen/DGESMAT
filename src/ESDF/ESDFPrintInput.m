@@ -44,12 +44,11 @@ InfoPrint(outFid, "Eig Tolerance Dyn                    = ",  esdfParam.userOpti
 InfoPrint(outFid, "Num unused state                     = ",  esdfParam.basic.numUnusedState);
 InfoPrint(outFid, "EcutWavefunction                     = ",  esdfParam.basic.ecutWavefunction);
 InfoPrint(outFid, "Density GridFactor                   = ",  esdfParam.basic.densityGridFactor);
+InfoPrint(outFid, "Number of Extra Electron             = ",  esdfParam.basic.extraElectron);
 
 InfoPrint(outFid, "Use Atom Density                     = ",  esdfParam.userOption.general.isUseAtomDensity);
-InfoPrint(outFid, "Use VLocal                           = ",  esdfParam.userOption.general.isUseVLocal);
 InfoPrint(outFid, "RestartDensity                       = ",  esdfParam.userOption.general.isRestartDensity);
 InfoPrint(outFid, "RestartWfn                           = ",  esdfParam.userOption.general.isRestartWfn);
-InfoPrint(outFid, "Number of Extra Electron             = ",  esdfParam.basic.extraElectron);
 
     
 % DGDFT or PWDFT
@@ -61,7 +60,7 @@ if esdfParam.isDGDFT
     InfoPrint(outFid, "Wfn Elem GridSize                    = ",  esdfParam.DG.numGridWavefunctionElem);
     InfoPrint(outFid, "Rho Elem GridSize                    = ",  esdfParam.DG.numGridDensityElem); 
     InfoPrint(outFid, "LGL Grid size                        = ",  esdfParam.DG.numGridLGL); 
-    InfoPrint(outFid, "LGL GridFactor                       = ",  esdfParam.DG.LGLGridFactor);
+    InfoPrint(outFid, "LGL Grid Factor                      = ",  esdfParam.DG.LGLGridFactor);
     InfoPrint(outFid, "Buffer size                          = ",  esdfParam.DG.bufferSize);
 
     InfoPrint(outFid, "SVD Basis Tol                        = ",  esdfParam.control.SVDBasisTolerance);

@@ -65,8 +65,7 @@ end
 % This method only uses the value of the local pseudopotential and
 % does not use the derivative of the pseudopotential. This is done
 % through integration by parts, and the derivative is applied to the
-% Coulomb potential evaluated on a uniform grid. 
-% 
+% Coulomb potential evaluated on a uniform grid.  
 
 for elemIdx = 1 : numElemTotal
     ppMap = HamDG.pseudoListElem{elemIdx};
@@ -82,6 +81,28 @@ for elemIdx = 1 : numElemTotal
             drv = vhartDrv{d}{elemIdx};
             res = sum( val .* drv(idx) ) * wgt;
             force(atomIdx, d) = force(atomIdx, d) + res;
+        end
+    end
+end
+
+% The integration by parts formula requires the calculation of the
+% gradient density
+HamDG.gradDensity = CalculateGradDensity(HamDG);
+
+for elemIdx = 1 : numElemTotal
+    ppMap = HamDG.pseudoListElem{elemIdx};
+    for atomIdxCell = keys(ppMap)
+        atomIdx = atomIdxCell{1};
+        pseudo = ppMap(atomIdx);
+        sp = pseudo.vLocalSR;
+        idx = sp.idx;
+        val = sp.val;
+
+        wgt = HamDG.domain.Volume() / HamDG.domain.NumGridTotalFine();
+        for d = 1 : dim
+            gradDensityd = HamDG.gradDensity{d}{elemIdx};
+            res = sum( val .* gradDensityd(idx) ) * wgt;
+            force(atomIdx, d) = force(atomIdx, d) - res;
         end
     end
 end
@@ -157,10 +178,28 @@ end
  
 
 % ***********************************************************************
-% Give the value to atomList
+% Compute the total force and give the value to atomList
 % ***********************************************************************
 for a = 1 : numAtom
     HamDG.atomList(a).force = force(a, :);
+end
+
+% add extra contribution from short range interaction
+for i = 1 : numAtom
+    HamDG.atomList(i).force = HamDG.atomList(i).force + HamDG.forceIonSR(i, :);
+end
+
+% add extra contribution to the force
+if HamDG.VDWType == "DFT-D2"
+    % update force
+    for i = 1 : numAtom
+        HamDG.atomList(i).force = HamDG.atomList(i).force + HamDG.forceVdw(i, :);
+    end
+end
+
+% add the contribution from external force
+for i = 1 : numAtom
+    HamDG.atomList(i).force = HamDG.atomList(i).force + HamDG.forceExt(i, :);
 end
 
 

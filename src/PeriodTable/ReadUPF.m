@@ -2,7 +2,7 @@ function [tempEntry, atomicNum] = ReadUPF(fileName)
 % READUPF reads pseudopotential info from UPF file
 %
 %    [tempEntry, atomicNum] = ReadUPF(fileName) reads data from file and
-%    returns the atomic number, pseudopotential data is stored in the 
+%    returns the atomic number, pseudopotential data stored in the 
 %    structure PTEntry.
 %
 %    See also PeriodTable, PTEntry.
@@ -15,7 +15,7 @@ function [tempEntry, atomicNum] = ReadUPF(fileName)
 % Currently only version 2 UPF file with norm-conserving condition can be
 % supported.
 
-pchart = PeriodChart();
+etable = ElementTable();
 tempEntry = PTEntry();
 
 upfid = fopen(fileName, 'r');
@@ -57,14 +57,8 @@ elseif upf_version == 2
     while ~contains(buff, '</PP_INFO>')
         buff = fgets(upfid);
         upf_pp_info = upf_pp_info + buff; 
-    end
-    
-    % remove all '<' and '>' characters from the PP_INFO field for XML
-    % compatibility
-    upf_pp_info = erase(upf_pp_info, '<');
-    upf_pp_info = erase(upf_pp_info, '>');
-    
-    
+    end        
+
     % -------------------- <PP_HEADER> ------------------------------
     tag = read_start_field("PP_HEADER", upfid);
     
@@ -73,11 +67,8 @@ elseif upf_version == 2
     upf_symbol = erase(upf_symbol, ' ');
     
     % get atomic number and mass
-    atomicNum = pchart.z(upf_symbol);
-    mass = pchart.mass(upf_symbol);
-    
-    tempEntry.params.Znuc = atomicNum;
-    tempEntry.params.Mass = mass;
+    atomicNum = etable.z(upf_symbol);
+    mass = etable.mass(upf_symbol);  
     
     % check if potential is norm-conserving or semi-local
     pseudo_type = get_attr(tag, "pseudo_type");
@@ -99,7 +90,7 @@ elseif upf_version == 2
     % valence charge
     upf_zval = get_attr(tag, "z_valence");
     InfoPrint(0, ' upf_zval = %s \n', upf_zval);
-    tempEntry.params.Zion = str2double(upf_zval);
+    upf_zval = str2double(upf_zval);
         
     % max angular momentum
     upf_lmax = get_attr(tag, "l_max");
@@ -127,37 +118,30 @@ elseif upf_version == 2
     upf_nproj = str2double(upf_nproj);
 
 
-    % FIXME: RGaussian should be given by a table according to the element type 
-    tempEntry.params.RGaussian = 1.0;    
-    tempEntry.params.Eself = 1.0;    
+    %
+    % Initialize tempEntry
+    %
+    tempEntry.params.Znuc = atomicNum;
+    tempEntry.params.Mass = mass;
+    tempEntry.params.Zval = upf_zval;
     
     tempEntry.samples.nonlocal = zeros(upf_mesh_size, 2*upf_nproj);
     tempEntry.cutoffs.nonlocal = zeros(upf_nproj, 1);
-    tempEntry.NLweights        = zeros(upf_nproj, 1);
-    tempEntry.NLtypes          = zeros(upf_nproj, 1);
+    tempEntry.nlweights        = zeros(upf_nproj, 1);
+    tempEntry.nltypes          = zeros(upf_nproj, 1);
     
-    tempEntry.samples.drv_pseudoCharge = zeros(upf_mesh_size, 1);
-    tempEntry.samples.drv_vLocal       = zeros(upf_mesh_size, 1);
-    tempEntry.samples.drv_rhoAtom      = zeros(upf_mesh_size, 1);
+    tempEntry.samples.drv_vLocalSR     = zeros(upf_mesh_size, 1);
+    tempEntry.samples.drv_rhoAtom      = zeros(upf_mesh_size, 1);    
     
-    
-    % TODO: the following rhoatomcut, rhocut, nonlocal potential cutoff
-    % should be given by a table according to the element type
-    rhoatomcut = 4.0;
-    rhocut = 6.0;
-    nlcut = 2.0;
-
+    rhocut = get_attr(tag, "rho_cutoff");
+    rhocut = str2double(rhocut);
     tempEntry.cutoffs.rad = rhocut;
-    tempEntry.cutoffs.vLocal = rhocut;
-    tempEntry.cutoffs.drv_vLocal = rhocut;
-    tempEntry.cutoffs.pseudoCharge = rhocut;
-    tempEntry.cutoffs.drv_pseudoCharge = rhocut;
-    
-    tempEntry.cutoffs.rhoAtom = rhoatomcut;
-    tempEntry.cutoffs.drv_rhoAtom = rhoatomcut;
-
+    tempEntry.cutoffs.vLocalSR = rhocut;
+    tempEntry.cutoffs.drv_vLocalSR = rhocut;
+    tempEntry.cutoffs.rhoAtom = rhocut;
+    tempEntry.cutoffs.drv_rhoAtom = rhocut;
     for j = 1 : upf_nproj     
-        tempEntry.cutoffs.nonlocal(j) = nlcut;
+        tempEntry.cutoffs.nonlocal(j) = rhocut;
     end
 
     
@@ -177,6 +161,17 @@ elseif upf_version == 2
     
     % add the mesh into samples
     tempEntry.samples.rad = upf_r;
+
+    % if rho_cutoff is not provided in UPF file
+    if rhocut == 0
+        rhocut = upf_r(end);
+        tempEntry.cutoffs.rad = rhocut;
+        tempEntry.cutoffs.rhoAtom = rhocut;
+        tempEntry.cutoffs.drv_rhoAtom = rhocut;
+        for j = 1 : upf_nproj     
+            tempEntry.cutoffs.nonlocal(j) = rhocut;
+        end    
+    end
     
     
     % ---------------------- <PP_NLCC> --------------------------------
@@ -195,21 +190,69 @@ elseif upf_version == 2
     
     % add vlocal into the samples
     % vlocal derivative is 0
-    upf_vloc = 0.5 * upf_vloc;
-    
+    upf_vloc = 0.5 * upf_vloc;  % unit conversion: from Ry to Bohr
     % interpolation
     [r, vr] = spline_rad(upf_r, upf_vloc, 1);
     [splb, splc, spld] = spline(r, vr);
     upf_vloc = seval(upf_r, r, vr, splb, splc, spld);
+    tempEntry.samples.vLocalSR = upf_vloc;    
+    % NOTE: here is still initial data, a post-processing in 
+    % PeriodTable/Setup() will generate real short range part
+
+    %
+    % determine RGaussian through an optimization problem
+    %
+    fitfunc = fittype('-Zval*erf(r/Rg)/r', 'problem', 'Zval', 'independent', 'r');
+    RGaussian_threshold = 1e-4;
+    % find the start point to perform curve fitting
+    idx_position = floor( length(upf_r) * 5/6 );
+    idx_threshold = ...
+        find( abs(upf_vloc - (-upf_zval./upf_r)) <= RGaussian_threshold );
+    if isempty(idx_threshold)
+        idx = idx_position; 
+    else
+        % skip the potential oscillation
+        idx_increment = diff(idx_threshold);
+        temp = find(idx_increment > 1);
+        if ~isempty(temp)
+            idx_threshold = idx_threshold((temp(end)+1) : end);
+        end
+        idx = idx_threshold;
+    end
+    fitParam = fit(upf_r(idx : end), upf_vloc(idx : end), fitfunc, ...
+                    'problem', upf_zval, 'startpoint', 1.0, 'lower', 0.0);
+    RGaussian = fitParam.Rg;
+    tempEntry.params.RGaussian = RGaussian;
     
-    tempEntry.samples.vLocal = upf_vloc;    
-    tempEntry.samples.pseudoCharge = upf_vloc;
-        
+    %
+    % determine vsrcut according to RGaussian
+    %
+    vlocSR_threshold = 1e-6;  % threshold for short range part of VLocal
+    vGaussian = -upf_zval * erf(upf_r ./ RGaussian) ./ upf_r;
+    idx_threshold = find( abs(upf_vloc - vGaussian) <= vlocSR_threshold );
+    if isempty(idx_threshold)
+        vsrcut = upf_r(end);
+    else
+        % skip the potential osillation
+        idx_increment = diff(idx_threshold);
+        temp = find(idx_increment > 1);
+        if ~isempty(temp)
+            idx_threshold = idx_threshold((temp(end)+1) : end);
+        end
+        vsrcut = upf_r(idx_threshold(1));
+    end
+    tempEntry.cutoffs.vLocalSR = vsrcut;
+    tempEntry.cutoffs.drv_vLocalSR = vsrcut;
+
+    InfoPrint(0, ' RGaussian = ', tempEntry.params.RGaussian);
+    InfoPrint(0, ' vsrcut = ' , tempEntry.cutoffs.vLocalSR);
+
     
     % -------------------- <PP_NONLOCAL> ------------------------
     read_start_field("PP_NONLOCAL", upfid);
     upf_proj_l = zeros(upf_nproj, 1);
     
+    % read <PP_BETA>
     for j = 1 : upf_nproj
         item_name = "PP_BETA." + num2str(j); 
         tag = read_start_field(item_name, upfid);
@@ -219,12 +262,16 @@ elseif upf_version == 2
         InfoPrint(0, ' index = %s \n', index);
         index = str2double(index);
         angular_momentum = get_attr(tag, "angular_momentum");
-        InfoPrint(0, ' angular_momentum = %s \n' ,angular_momentum);
+        InfoPrint(0, ' angular_momentum = %s \n', angular_momentum);
         angular_momentum = str2double(angular_momentum);
         if angular_momentum > upf_lmax
             error('angular momentum mistake in UPF file');
         end
         upf_proj_l(index) = angular_momentum;
+        
+        cutoff_radius = get_attr(tag, "cutoff_radius");
+        InfoPrint(0, ' cutoff_radius = %s \n', cutoff_radius);
+        tempEntry.cutoffs.nonlocal(j) = str2double(cutoff_radius);
         
         % read non_local part data
         buff_str = read_content_field(item_name, upfid);
@@ -243,45 +290,47 @@ elseif upf_version == 2
         % nonlocal derivative is 0
         tempEntry.samples.nonlocal(:, 2*j-1) = upf_vnl;
     end
-    
-    % compute number of projectors for each l
-    % nproj_l(l) is the number of the projectors having angular
-    % momentum l
-    nproj_l = zeros(upf_lmax+1, 1);
-    for k = 0 : upf_lmax
-        nproj_l(k+1) = sum(upf_proj_l == k);
-    end
 
+    tempEntry.nltypes = upf_proj_l;
+    
     % read <PP_DIJ>
     tag = read_start_field("PP_DIJ", upfid);
     size = get_attr(tag, "size");
     InfoPrint(0, ' PP_DIJ size = %s \n\n', size);
-    size = str2double(size);
-    
+    size = str2double(size);        
     if size ~= upf_nproj*upf_nproj
         error('Number of non-zeros Dij differs from number of projectors.');
     end
-    
     upf_ndij = size;
     buff_str = read_content_field("PP_DIJ", upfid);
     upf_d = sscanf(buff_str, '%f', upf_ndij);
-    
-    read_end_field("PP_NONLOCAL", upfid);
-    
+        
     % add Dij to the weights
     upf_d = reshape(upf_d, upf_nproj, []);
-    % check if Dij has non-diagonal element
-    if ~isdiag(upf_d)
-        error('Non-local Dij has off-diagonal elements');
+    upf_d = 0.5 * upf_d;  % unit conversion from Ry to Bohr
+    tempEntry.nlweights = diag(upf_d);
+    
+    % Post processing nonlocal pseudopotential by diagonalizing
+    % nonlocal D and combine the vectors into upf_vnl.
+    % This is done by diagonalizing each angular momentum block.
+    for l = 0 : upf_lmax
+        % extract relevant index
+        idx = find(upf_proj_l == l);
+        D_block = upf_d(idx, idx);
+        % If D_block is a diagonal matrix, no need for diagonalization,
+        % just copy the vectors to right place.
+        % If D_block has non-diagonal element, diagonalize the sublock
+        % and combine eigenvectors to projectors.
+        if ~isdiag(D_block)
+            [tempV, tempD] = eig(D_block);
+            vnl_block = tempEntry.samples.nonlocal(:, 2*idx-1);
+            vnl_block = vnl_block * tempV;
+            tempEntry.samples.nonlocal(:, 2*idx-1) = vnl_block;
+            tempEntry.nlweights(idx) = diag(tempD);
+        end    
     end
-    for j = 1 : upf_nproj     
-    % FIXME: nonlocal cutoffs should be given by a table according to
-    % the element type
-        tempEntry.NLweights(j) = 0.5 * upf_d(j, j);        
-        tempEntry.NLtypes(j) = upf_proj_l(j);
-        
-        tempEntry.cutoffs.nonlocal(j) = nlcut;
-    end
+
+    read_end_field("PP_NONLOCAL", upfid);
     
     % --------------------- <PP_RHOATOM> -----------------------------
     read_start_field("PP_RHOATOM", upfid);
@@ -298,7 +347,7 @@ elseif upf_version == 2
     % rho_atom derivative is 0.0
     tempEntry.samples.rhoAtom = upf_rho_atom;
         
-    fclose(upfid);
+    fclose(upfid); 
 end
 
 end
@@ -338,20 +387,23 @@ end
 % upfid starts next to <name>, ends at </name>
 function buff_str = read_content_field(name, upfid)
     buff_str = "";
-    token = fgetl(upfid);
+    token = fgets(upfid);
     end_str = "</" + name + ">"; 
     while ~contains(token, end_str)
         buff_str = buff_str + token;
-        token = fgetl(upfid);
+        token = fgets(upfid);
     end
 end
 
 % read the end block of field "name" if there exists, i.e., </name>
+% NOTE: this function is used to read end line of field that contains 
+% subfields, e.g., PP_NONLOCAL. Fields without subfield should NOT 
+% use this function to read end line of the field.
 function read_end_field(name, upfid)
     search_str = "</" + name + ">";
     token = fgetl(upfid);
     while ~contains(token, search_str) && ~feof(upfid)
-        token = fetl(upfid);
+        token = fgetl(upfid);
     end
     if feof(upfid)
         error('EOF reached before end of field %s \n', name);
@@ -361,10 +413,14 @@ end
 % search value of attribute "attr" in buff
 function value = get_attr(buff, attr)
     search_str = " " + attr + "=";
-    
     buff = char(buff);
     % find attribute name in buff
-    idx_attr = strfind(buff, search_str);    
+    idx_attr = strfind(buff, search_str);
+    if isempty(idx_attr)
+        % add another try to support different types of UPF file
+        search_str = attr + "=";
+        idx_attr = strfind(buff, search_str);
+    end    
     if isempty(idx_attr)
         error('get_attr: attribute not found: %s \n', attr);
     else
@@ -378,4 +434,3 @@ function value = get_attr(buff, attr)
         value = buff(idx_begin+1 : idx_end-1);
     end
 end
-    

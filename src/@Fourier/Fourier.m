@@ -16,7 +16,7 @@ classdef Fourier
         isInitialized
         isInitializedFine
 
-        % bool variables indicate for direction of fft
+        % bool variable indicating direction of fft
         forward
         
         % Laplacian operator related

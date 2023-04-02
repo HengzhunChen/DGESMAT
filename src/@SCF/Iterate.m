@@ -78,6 +78,10 @@ for iter = 1 : controlVar.scfMaxIter
     end
     
     % ----------------- Potential Mixing ----------------------------
+
+    if scf.mixing.mixVariable ~= "potential"
+        error('Currently only potential mixing is supported in pwdft');
+    end
     
     if scf.mixing.mixType == "anderson" || scf.mixing.mixType == "kerker+anderson"
         [scf.eigSol.hamKS.vtot, scf.mixing.dfMat, scf.mixing.dvMat] = ...

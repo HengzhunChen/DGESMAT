@@ -8,6 +8,8 @@ begin Element_Size
     1    1    4
 end Element_Size
 
+ALB_Num:              16
+
 Atom_Types_Num:        1
 
 Atom_Type:             1
@@ -22,3 +24,7 @@ begin Atom_Red:
    -0.07   0.00   0.85
     0.07   0.00   0.85
 end Atom_Red
+
+Ecut_Wavefunction:    120
+
+SCF_Outer_Tolerance:    1e-8

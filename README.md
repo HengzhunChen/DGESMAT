@@ -1,5 +1,5 @@
 DGESMAT (Discontinuous Galerkin Electronic Structure in MATLAB)
-==============
+================================================================
 
 To use this code, cd into the dgesmat directory and type `DGESMAT_startup`
 in command line or run DGESMAT_startup.m to set up all paths.
@@ -36,6 +36,8 @@ end
 delete(gcp('nocreate'));  % shut down the parallel pool
 ```
 
+In general, you can set NumWorkers to be the number of DG elements in total 
+and decide the NumThreads according to the configuration of your machine. 
 You can cd into the examples directory and see the graphene 54 (G54) mode 
 for more details. See also document of `parfor` from MATLAB. You can also
 change `parfor` into `for` to remove the parallel computing tools whenever 
@@ -69,7 +71,7 @@ and ONCV type pseudopotential, number of SCF outer iteration is `30`.
 Number of threads in horizontal axis is number of processes used in MPI 
 or product of number of workers and number of threads each worker in MATLAB. 
 In the following example, number of workers are all `9`, which corresponding 
-to the number of elements total. 
+to the number of elements in total. 
 
 <center>
 <img src="./doc/figure/performace_comparison.png" width="70%">

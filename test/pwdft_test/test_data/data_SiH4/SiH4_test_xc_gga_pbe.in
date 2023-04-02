@@ -1,6 +1,6 @@
 # SiH4 molecule
 
-Ecut_Wavefunction:     12.5
+Ecut_Wavefunction:     80
 
 begin Super_Cell
     10    10    10

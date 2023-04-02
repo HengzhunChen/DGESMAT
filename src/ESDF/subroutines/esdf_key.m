@@ -21,9 +21,6 @@ i = 1;
 kw_label(i) = "use_atom_density";
 
 i = i + 1;
-kw_label(i) = "use_vlocal";
-
-i = i + 1;
 kw_label(i) = "eig_tolerance_dynamic";
 
 
@@ -148,6 +145,9 @@ kw_label(i) = "atom_red";
 
 i = i + 1;
 kw_label(i) = "super_cell";
+
+i = i + 1;
+kw_label(i) = "super_cell_angstrom";
 
 i = i + 1;
 kw_label(i) = "upf_file";

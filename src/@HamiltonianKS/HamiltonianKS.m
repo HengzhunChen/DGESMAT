@@ -48,8 +48,7 @@ classdef HamiltonianKS
         epsxc
         vtot
 
-        pseudoCharge
-        gaussianCharge  % used if isUseVLocal
+        pseudoCharge  % Gaussian compensation charge
         density
         gradDensity
         atomDensity
@@ -79,8 +78,8 @@ classdef HamiltonianKS
         function H = HamiltonianKS(varargin)
             
             H.pseudoList = struct(...
-                'pseudoCharge', [], ...
-                'vLocalSR', [], ...  % used if isUseVLocal
+                'pseudoCharge', [], ...  % Gaussian compensation charge
+                'vLocalSR', [], ...      % short range part for VLocal
                 'vnlList', [] ...
                 );
             
@@ -90,7 +89,7 @@ classdef HamiltonianKS
                 );
             
             H.userOption = struct(...
-                'isUseVLocal', [] ...
+                ...
                 );
             
             switch (nargin)

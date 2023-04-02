@@ -17,6 +17,7 @@ HamDG.domain            = esdfParam.basic.domain;
 HamDG.atomList          = esdfParam.basic.atomList;
 HamDG.pseudoType        = esdfParam.basic.pseudoType;
 HamDG.XCType            = esdfParam.basic.XCType;
+HamDG.VDWType           = esdfParam.basic.VDWType;
 HamDG.numExtraState     = esdfParam.basic.numExtraState;
 HamDG.ecutWavefun       = esdfParam.basic.ecutWavefunction;
 HamDG.numElem           = esdfParam.DG.numElem;

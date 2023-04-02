@@ -12,13 +12,9 @@ function X = FineToCoarse(Xfine, F)
 %                          Fudan University
 %  This file is distributed under the terms of the MIT License.
 
-ntot = F.domain.NumGridTotal();
-ntotFine = F.domain.NumGridTotalFine();
-
-fac = sqrt( ntotFine / ntot );
 idx = F.idxFineGrid;
-
 yfine = F * Xfine;
-X = F' * yfine(idx, :) .* fac;
+X = F' * yfine(idx, :);
+X = real(X);
 
 end

@@ -9,7 +9,7 @@ function esdfParam = ESDFReadInput(inputFile)
 %  This file is distributed under the terms of the MIT License.
 
 
-esdfParam =  ESDFInputParam();
+esdfParam = ESDFInputParam();
 
 % initialize and check parameters in inputFile
 esdf_init(inputFile);
@@ -20,8 +20,8 @@ esdf_init(inputFile);
 % ************************************************************************
 
 % general options
-esdfParam.userOption.general.isUseAtomDensity        = esdf_get( "Use_Atom_Density", 0 );
-esdfParam.userOption.general.isUseVLocal             = esdf_get( "Use_VLocal", 0 );
+% NOTE: for different systems, turn on isUseAtomDensity or not MAY have significant impact on SCF convergence. 
+esdfParam.userOption.general.isUseAtomDensity        = esdf_get( "Use_Atom_Density", 1 );
 esdfParam.userOption.general.isPWeigTolDynamic       = esdf_get( "Eig_Tolerance_Dynamic", 0 );
 esdfParam.userOption.general.isRestartDensity        = esdf_get( "Restart_Density", 0 );
 esdfParam.userOption.general.isRestartWfn            = esdf_get( "Restart_Wfn", 0 );
@@ -51,14 +51,19 @@ esdfParam.userOption.DG.isCalculateAPosterioriEachSCF = esdf_get( "Calculate_APo
 
 % -------------------------  Domain  -----------------------------------
 
-[block_data, nlines] = esdf_block('Super_Cell');
-if nlines ~= 0
-    escell = sscanf(block_data(1), '%f');
-    esdfParam.basic.domain.length(1) = escell(1);
-    esdfParam.basic.domain.length(2) = escell(2);
-    esdfParam.basic.domain.length(3) = escell(3);
+[block_data_au, nlines_au] = esdf_block('Super_Cell');  % atomic unit
+[block_data_ang, nlines_ang] = esdf_block('Super_Cell_Angstrom');
+if nlines_au ~= 0 && nlines_ang ~=0
+    error('super_Cell and Super_Cell_Angstrom are multiply defined.');
+end
+if nlines_au ~= 0
+    escell = sscanf(block_data_au(1), '%f');
+    esdfParam.basic.domain.length = escell';
+elseif nlines_ang ~= 0
+    escell = sscanf(block_data_ang(1), '%f');
+    esdfParam.basic.domain.length = escell' ./ au2angDef();
 else
-    error('Super_Cell cannot be found.');
+    error('Super_Cell or Super_Cell_Angstrom cannot be found.');
 end
 esdfParam.basic.domain.posStart = [0, 0, 0];
 
@@ -99,8 +104,6 @@ for i = 1 : esdfParam.basic.numAtomType
         for j = 1 : numAtom
             pos = sscanf(block_data(j), '%f');
             pos = pos';  % turn column vector into row vector
-            % force atom to be centered around (0, 0, 0)
-            pos = pos - round( pos ./ dm.length ) .* dm.length;
             esdfParam.basic.atomList(end+1) = Atom(type(i), pos, [0, 0, 0], [0, 0, 0]);
         end
     else
@@ -111,10 +114,7 @@ for i = 1 : esdfParam.basic.numAtomType
             pos = sscanf(block_data(k), '%f');
             pos = pos';  % turn column vector into row vector
             % unit conversion, from Ang to Bohr
-            pos = pos ./ au2angDef();
-            
-            % force atom to be centered around (0, 0, 0)
-            pos = pos - round( pos ./ dm.length ) .* dm.length;
+            pos = pos ./ au2angDef();            
             esdfParam.basic.atomList(end+1) = Atom(type(i), pos, [0, 0, 0], [0, 0, 0]);
         end
     else
@@ -125,10 +125,7 @@ for i = 1 : esdfParam.basic.numAtomType
             pos = sscanf(block_data(l), '%f');
             pos = pos';  % turn column vector into row vector
             % unit conversion, from Reduced to Bohr
-            pos = pos .* dm.length;
-            
-            % force atom to be centered around (0, 0, 0)
-            pos = pos - round( pos ./ dm.length ) .* dm.length;
+            pos = pos .* dm.length;            
             esdfParam.basic.atomList(end+1) = Atom(type(i), pos, [0, 0, 0], [0, 0, 0]);
         end
     else
@@ -170,7 +167,7 @@ if (esdfParam.basic.mixVariable ~= "density" && ...
     error('Invalid mixing variable');
 end
 
-esdfParam.basic.mixStepLength = esdf_get( "Mixing_StepLength", 0.8 );
+esdfParam.basic.mixStepLength = esdf_get( "Mixing_StepLength", 0.5 );
 
 
 % ------------------------  Others -------------------------------------
@@ -193,7 +190,7 @@ esdfParam.basic.numUnusedState = esdf_get( "Unused_States",  0 );
 
 esdfParam.basic.extraElectron  = esdf_get( "Extra_Electron", 0 );
 
-esdfParam.basic.pseudoType     = esdf_get("Pseudo_Type", "HGH"); 
+esdfParam.basic.pseudoType     = esdf_get("Pseudo_Type", "ONCV"); 
 esdfParam.basic.PWSolver       = esdf_get("PW_Solver", "LOBPCG"); 
 esdfParam.basic.XCType         = esdf_get("XC_Type", "XC_LDA_XC_TETER93"); 
 esdfParam.basic.VDWType        = esdf_get("VDW_Type", "None");
@@ -332,23 +329,23 @@ end
 %
 %  N_max = \frac{\sqrt{2 Ecut} * L}{pi}.
 %
-% The number of gird point along this dimension is chosen to be the largest
-% even number bigger than N_max. The number of global grid points is also
-% required to be divisible by the number of elements along that dimension.
+% The number of grid point along this dimension is chosen to be the
+% smallest integer bigger than N_max. The number of global grid points is 
+% also required to be divisible by the number of elements along that 
+% dimension.
 %
 % TODO Later the number of grid points can be improved to only contain the
-% factor of 2, 3, and 5.
+% factor of 2, 3, and 5 to accelerate fft.
 
 numElem = esdfParam.DG.numElem;
 elemLength = esdfParam.basic.domain.length ./ numElem;
 ecutWavefunction = esdfParam.basic.ecutWavefunction;
 densityGridFactor = esdfParam.basic.densityGridFactor; 
 
-% the number of grid is assumed to be at least an even number
-numGridWavefunctionElem = ceil( ...
-    sqrt(2 * ecutWavefunction) .* elemLength ./ pi ./ 2 ) .* 2;
-numGridDensityElem = ceil( ...
-    numGridWavefunctionElem .* densityGridFactor / 2 ) .* 2;
+numGridWavefunctionElem = ...
+    ceil( sqrt(2 * ecutWavefunction) .* elemLength ./ pi );
+numGridDensityElem = ...
+    ceil( numGridWavefunctionElem .* densityGridFactor );
 
 esdfParam.DG.numGridWavefunctionElem = numGridWavefunctionElem;
 esdfParam.DG.numGridDensityElem = numGridDensityElem;
@@ -359,8 +356,8 @@ esdfParam.basic.domain.numGrid = numGridWavefunctionElem .* numElem;
 esdfParam.basic.domain.numGridFine = numGridDensityElem .* numElem;
 
 if esdfParam.isDGDFT
-    esdfParam.DG.numGridLGL = ceil( ...
-        numGridWavefunctionElem * esdfParam.DG.LGLGridFactor ); 
+    esdfParam.DG.numGridLGL = ...
+        ceil( numGridWavefunctionElem * esdfParam.DG.LGLGridFactor ); 
 end
 
 
@@ -403,10 +400,6 @@ end
 % Some remaining consistency checks
 % ***********************************************************************
 
-if esdfParam.basic.pseudoType == "HGH" && ...
-        esdfParam.userOption.general.isUseAtomDensity == true
-    error('HGH type pseudopotential cannot use atom density as the initial guess');
-end
-
+% Here are some checks for consistency of default value and user-specified value.
         
 end

@@ -18,3 +18,5 @@ Atom_Type:             8
 begin Atom_Red 
          0.00       0.00         0.00
 end Atom_Red
+
+Ecut_Wavefunction:     100

@@ -30,109 +30,67 @@ F = HamKS.fft;
 % No need to evaluate the derivative of the local pseudopotential.
 % This could potentially save some coding effort and perhaps better for
 % other pseudopotential such as Troullier-Martins
+ 
+% VLocal formulation of the local contribution to the force
 
-if ~HamKS.userOption.isUseVLocal
-    % pseudocharge formulation of the local contribution to the force
-    vhartDrv = cell(dim, 1);
-        
-    totalCharge = HamKS.density - HamKS.pseudoCharge;
-    
-    % total charge in the Fourier space    
-    totalChargeFourier = F * totalCharge;
-    
-    % Compute the derivative of the Hartree potential via Fourier transform
-    gkkFine = F.gkkFine;
-    idxnz = gkkFine ~= 0;
-    for d = 1 : dim
-        ikFine = F.ikFine{d};
-        
-        y = totalChargeFourier;
-        y(~idxnz) = 0;
-        y(idxnz) = y(idxnz) .* 4*pi ./ gkkFine(idxnz) .* ikFine(idxnz);        
-        x = F' * y;
-        
-        % vhartDrv saves the derivative of the Hartree potential
-        vhartDrv{d} = real(x);
-    end
+% first contribution from the pseudocharge
+vhartDrv = cell(dim, 1);
 
-    for i = 1 : numAtom
-        pp = HamKS.pseudoList(i);
-        sp = pp.pseudoCharge;
-        idx = sp.idx;
-        val = sp.val;
-        
-        wgt = vol / numGridTotalFine;
-        resX = sum( val .* vhartDrv{1}(idx) ) * wgt;
-        resY = sum( val .* vhartDrv{2}(idx) ) * wgt;
-        resZ = sum( val .* vhartDrv{3}(idx) ) * wgt;
-        
-        force(i, 1) = force(i, 1) + resX;
-        force(i, 2) = force(i, 2) + resY;
-        force(i, 3) = force(i, 3) + resZ;
-    end
+totalCharge = HamKS.density - HamKS.pseudoCharge;
     
-else
-    % VLocal formulation of the local contribution to the force
-    
-    % first contribution from the pseudocharge
-    vhartDrv = cell(dim, 1);
-    
-    totalCharge = HamKS.density - HamKS.pseudoCharge;
-        
-    % total charge in the Fourier space
-    totalChargeFourier = F * totalCharge;
-    
-    % compute the derivative of the Hartree potential via Fourier transform
-    gkkFine = F.gkkFine;
-    idxnz = gkkFine ~= 0;
-    for d = 1 : dim
-        ikFine = F.ikFine{d};
-        y = totalChargeFourier;
-        y(~idxnz) = 0;
-        y(idxnz) = y(idxnz) .* 4*pi ./ gkkFine(idxnz) .* ikFine(idxnz);
-        x = F' * y;
-        
-        % vhartDrv saves the derivative of the Hartree potential
-        vhartDrv{d} = real(x);
-    end
+% total charge in the Fourier space
+totalChargeFourier = F * totalCharge;
 
-    for i = 1 : numAtom
-        pp = HamKS.pseudoList(i);
-        sp = pp.pseudoCharge;
-        idx = sp.idx;
-        val = sp.val;
-        
-        wgt = vol / numGridTotalFine;
-        resX = sum( val .* vhartDrv{1}(idx) ) * wgt;
-        resY = sum( val .* vhartDrv{2}(idx) ) * wgt;
-        resZ = sum( val .* vhartDrv{3}(idx) ) * wgt;
-        
-        force(i, 1) = force(i, 1) + resX;
-        force(i, 2) = force(i, 2) + resY;
-        force(i, 3) = force(i, 3) + resZ;
-    end
+% compute the derivative of the Hartree potential via Fourier transform
+gkkFine = F.gkkFine;
+idxnz = gkkFine ~= 0;
+for d = 1 : dim
+    ikFine = F.ikFine{d};
+    y = totalChargeFourier;
+    y(~idxnz) = 0;
+    y(idxnz) = y(idxnz) .* 4*pi ./ gkkFine(idxnz) .* ikFine(idxnz);
+    x = F' * y;
     
-    % Second, contribution from vLocalSR   
-    % The integration by parts formula requires the grad density
-    HamKS.gradDensity = CalculateGradDensity(HamKS);
-    
-    for i = 1 : numAtom
-        pp = HamKS.pseudoList(i);
-        sp = pp.vLocalSR;
-        idx = sp.idx;
-        val = sp.val;
-        
-        wgt = vol / numGridTotalFine;
-        resX = -sum( val .* HamKS.gradDensity{d}(idx) ) * wgt;
-        resY = -sum( val .* HamKS.gradDensity{d}(idx) ) * wgt;
-        resZ = -sum( val .* HamKS.gradDensity{d}(idx) ) * wgt;
-        
-        force(i, 1) = force(i, 1) + resX;
-        force(i, 2) = force(i, 2) + resY;
-        force(i, 3) = force(i, 3) + resZ;
-    end
-    
+    % vhartDrv saves the derivative of the Hartree potential
+    vhartDrv{d} = real(x);
 end
+
+for i = 1 : numAtom
+    pp = HamKS.pseudoList(i);
+    sp = pp.pseudoCharge;
+    idx = sp.idx;
+    val = sp.val;
+    
+    wgt = vol / numGridTotalFine;
+    resX = sum( val .* vhartDrv{1}(idx) ) * wgt;
+    resY = sum( val .* vhartDrv{2}(idx) ) * wgt;
+    resZ = sum( val .* vhartDrv{3}(idx) ) * wgt;
+    
+    force(i, 1) = force(i, 1) + resX;
+    force(i, 2) = force(i, 2) + resY;
+    force(i, 3) = force(i, 3) + resZ;
+end
+
+% Second, contribution from vLocalSR   
+% The integration by parts formula requires the grad density
+HamKS.gradDensity = CalculateGradDensity(HamKS);
+
+for i = 1 : numAtom
+    pp = HamKS.pseudoList(i);
+    sp = pp.vLocalSR;
+    idx = sp.idx;
+    val = sp.val;
+    
+    wgt = vol / numGridTotalFine;
+    resX = -sum( val .* HamKS.gradDensity{d}(idx) ) * wgt;
+    resY = -sum( val .* HamKS.gradDensity{d}(idx) ) * wgt;
+    resZ = -sum( val .* HamKS.gradDensity{d}(idx) ) * wgt;
+    
+    force(i, 1) = force(i, 1) + resX;
+    force(i, 2) = force(i, 2) + resY;
+    force(i, 3) = force(i, 3) + resZ;
+end
+
 
 
 % *********************************************************************
@@ -211,10 +169,8 @@ if HamKS.VDWType == "DFT-D2"
 end
 
 % add extra contribution from short range interaction
-if HamKS.userOption.isUseVLocal
-    for i = 1 : numAtom
-        HamKS.atomList(i).force = HamKS.atomList(i).force + HamKS.forceIonSR(i, :);
-    end
+for i = 1 : numAtom
+    HamKS.atomList(i).force = HamKS.atomList(i).force + HamKS.forceIonSR(i, :);
 end
 
 % add the contribution from external force

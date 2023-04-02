@@ -20,12 +20,11 @@ end
 InfoPrint(0, '\n');
 
 InfoPrint(0, '\n');
-InfoPrint(0, 'NOTE:  Ecor  = Exc - EVxc - Ehart -Eself \n');
+InfoPrint(0, 'NOTE:  Ecor  = Exc - EVxc - Ehart - Eself + EIonSR + EVdw + Eext \n');
 InfoPrint(0, '       Etot  = Ekin + Ecor \n');
 InfoPrint(0, '       Efree = Etot + Entropy \n \n');
 
 InfoPrint(0, "EfreeHarris       = ",  scfDG.EfreeHarris, "[au]");
-InfoPrint(0, "EfreeSecondOrder  = ",  scfDG.EfreeSecondOrder, "[au]");
 InfoPrint(0, "Etot              = ",  scfDG.Etot, "[au]");
 InfoPrint(0, "Efree             = ",  scfDG.Efree, "[au]");
 InfoPrint(0, "Ekin              = ",  scfDG.Ekin, "[au]");
@@ -34,6 +33,7 @@ InfoPrint(0, "EVxc              = ",  scfDG.EVxc, "[au]");
 InfoPrint(0, "Exc               = ",  scfDG.Exc, "[au]"); 
 InfoPrint(0, "Evdw              = ",  scfDG.Evdw, "[au]"); 
 InfoPrint(0, "Eself             = ",  scfDG.Eself, "[au]");
+InfoPrint(0, "EIonSR            = ",  scfDG.EIonSR, "[au]");
 InfoPrint(0, "Ecor              = ",  scfDG.Ecor, "[au]");
 InfoPrint(0, "Fermi             = ",  scfDG.fermi, "[au]");
     

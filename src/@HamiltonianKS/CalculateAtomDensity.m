@@ -14,10 +14,6 @@ function atomDensity = CalculateAtomDensity(HamKS, ptable)
 %  This file is distributed under the terms of the MIT License.
 
 
-if HamKS.pseudoType == "HGH"
-    error('HGH pseudopotential does not yet support the computation of atomic density!');
-end
-
 ntotFine = HamKS.domain.NumGridTotalFine();
 numAtom = length(HamKS.atomList);
 vol = HamKS.domain.Volume();
@@ -32,7 +28,7 @@ for i = 1 : numAtom
     if ~ptable.pteMap.isKey(atype)
         error('Cannot find the atom type');
     end
-    nelec = nelec + ptable.Zion(atype);
+    nelec = nelec + ptable.Zval(atype);
 end
 % add extra electron
 nelec = nelec + HamKS.numExtraElectron;

@@ -7,7 +7,6 @@ function [VLocalSR, GaussianPseudoCharge] = CalculateVLocal(PT, atom, domain, gr
 %    Both VLocalSR and GaussianPseudoCharge are struct with idx, val and 
 %    drv. idx is index with cutoff, val is value of VLocalSR or 
 %    GaussianPseudoCharge, drv is derivative in three directions. 
-%    This function is used WHEN user option isUseVLocal is true.
 %
 %    See also PeriodTable, PeriodTable/Setup, 
 %    HamiltonianKS/CalculatePseudoPotential, 
@@ -23,11 +22,10 @@ L = domain.length;  % vector
 
 spldata = PT.splineMap(atom.type);
 
-% use the pseudocharge cutoff for Gaussian compensation charge and short
-% range potential
-Rzero = PT.RcutPseudoCharge(atom.type);
+% use the cutoff for Gaussian compensation charge and short range potential
+Rzero = PT.RcutVLocalSR(atom.type);
 RGaussian = PT.RGaussian(atom.type);
-Zion = PT.Zion(atom.type);
+Zval = PT.Zval(atom.type);
 
 
 VLocalSR = struct(...
@@ -72,10 +70,10 @@ if norm(minDist) <= Rzero
     idxsize = length(idx);
     
     % -------------- short range pseudopotential ----------------------
-    valspl = spldata.vLocal;
+    valspl = spldata.vLocalSR;
     val = seval(rad, valspl(:, 1), valspl(:, 2), valspl(:, 3), valspl(:, 4), valspl(:, 5));
     
-    derspl = spldata.drv_vLocal;
+    derspl = spldata.drv_vLocalSR;
     der = seval(rad, derspl(:, 1), derspl(:, 2), derspl(:, 3), derspl(:, 4), derspl(:, 5));
     
     dv = zeros(idxsize, dim);  % derivatives in three directions
@@ -85,7 +83,7 @@ if norm(minDist) <= Rzero
     VLocalSR.val = val;
     
     % ------------------ Gaussian pseudocharge ------------------------
-    factor = Zion / ( sqrt(pi) * RGaussian )^3;    
+    factor = Zval / ( sqrt(pi) * RGaussian )^3;    
     val = factor * exp( -(rad / RGaussian).^2 );
     
     dv = zeros(idxsize, dim);  % derivatives in three directions

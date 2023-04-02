@@ -22,15 +22,6 @@ numSpin = hamDG.numSpin;
 Ekin = numSpin * sum(eigVal .* occupationRate);
 scfDG.Ekin = Ekin;
 
-% Self energy part
-Eself = 0;
-atomList = hamDG.atomList;
-for i = 1 : length(atomList)
-    type = atomList(i).type;
-    Eself = Eself + scfDG.ptable.SelfIonInteraction(type);
-end
-scfDG.Eself = Eself;
-
 % Hartree and XC part
 numElem = scfDG.numElem;
 numElemTotal = prod(numElem);
@@ -55,8 +46,18 @@ EVxc  = EVxc  * scfDG.domain.Volume() / scfDG.domain.NumGridTotalFine();
 scfDG.Ehart = Ehart;
 scfDG.EVxc = EVxc;
 
+% Self energy and ionic repulsion energy
+scfDG.Eself = hamDG.Eself;
+scfDG.EIonSR = hamDG.EIonSR;
+
+% Van der waals energy
+scfDG.Evdw = hamDG.EVdw;
+
+% External energy
+scfDG.Eext = hamDG.Eext;
+
 % Correction energy
-Ecor = (scfDG.Exc - EVxc) - Ehart - Eself;
+Ecor = (scfDG.Exc - EVxc) - Ehart - scfDG.Eself + scfDG.EIonSR + scfDG.Evdw + scfDG.Eext;
 scfDG.Ecor = Ecor;
 
 % Total energy

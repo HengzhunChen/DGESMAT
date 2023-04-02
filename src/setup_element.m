@@ -53,18 +53,29 @@ parfor elemIdx = 1 : numElemTotal
     atomList = esdfParam.basic.atomList;
     numAtom = length(atomList);            
     atomListExtElem = Atom.empty();
-    idx = 1;
+    idx = 0;
+    posList = nan(numAtom, 3);
     for a = 1 : numAtom
         pos = atomList(a).pos;
         if IsInSubdomain(pos, dmExtElem, dm.length)
             % update the coordinate relative to the extended element
             pos = pos - floor( (pos - dmExtElem.posStart) ./ dm.length ) ...
                         .* dm.length;
+
+            % check for multi-defined atoms under periodic condition of 
+            % the extended element
+            % NOTE: this MAY be removed when other boundary condition is used
+            repeatFlag = checkRepeatAtom(pos, posList(1:idx, :), dmExtElem, numElem);
+            if repeatFlag
+                continue;
+            end
+            % if atom not locates on the boundary, add into atomList
+            idx = idx + 1;
+            posList(idx, :) = pos;    
             atomListExtElem(idx) = Atom(atomList(a).type, ...
                                         pos, ...
                                         atomList(a).vel, ...
                                         atomList(a).force );
-            idx = idx + 1;
         end  % atom add in the extended element
     end
     
@@ -100,8 +111,67 @@ parfor elemIdx = 1 : numElemTotal
     VecEigSol{elemIdx} = EigenSolverKS(hamKS, psi);
 end
 
+% Check whether number of ALBs in each element is enough
+% NOTE: this is important for SCF convergence and need further
+% consideration with numALB and numState each element for 
+% large scale systems in future. 
+for elemIdx = 1 : numElemTotal
+    numALB = esdfParam.DG.numALBElem(elemIdx);
+    numOccupiedState = VecEigSol{elemIdx}.hamKS.numOccupiedState;
+
+    if numALB < numOccupiedState
+        [i, j, k] = ElemIdxToKey(elemIdx, numElem);
+        msg = "number of ALBs=" + num2str(numALB) + " in element " + ...
+            "(" + num2str(i) + ", " + num2str(j) + ", " + num2str(k) + ")" + ...
+            " is less than number of OccupiedStates=" + num2str(numOccupiedState) + ...
+            " over corresponding extended element." + ...
+            " This MAY have significant impact to SCF convergence.";
+        warning(msg);
+    end
+end
 
 timeEnd = toc(timeStart);
 InfoPrint([0, 1], 'Time for setting up extended element is %8f [s]\n\n', timeEnd);
+
+end
+
+
+function repeatFlag = checkRepeatAtom(pos, posList, dmExtElem, numElem)
+% CHECKREPEATATOM subroutine used to check whether an atom at position pos
+%    or its periodic images have been defined in the atom list posList 
+%    under periodic condition of extended element dmExtElem.
+
+    % check whether the atom on the boundary
+    posImage = cell(3, 1);
+    for d = 1 : 3
+        if numElem(d) >= 3
+            if abs(pos(d) - dmExtElem.posStart(d)) < 1e-14
+                posImage{d} = [pos(d), pos(d) + dmExtElem.length(d)];
+            elseif abs(pos(d) - dmExtElem.posStart(d) - dmExtElem.length(d)) < 1e-14
+                posImage{d} = [dmExtElem.posStart(d), pos(d)];
+            else
+                posImage{d} = pos(d);
+            end
+        else
+            posImage{d} = pos(d);
+        end
+    end
+
+    % generate position of periodic image 
+    [posImageX, posImageY, posImageZ] = ndgrid(posImage{1}, posImage{2}, posImage{3});
+    posImages = [posImageX(:), posImageY(:), posImageZ(:)];
+    
+    % if atom locates at the boudary, check whether its periodic images 
+    % already in the atomList
+    repeatFlag = false;
+    if size(posImages, 1) ~= 1
+        for ii = 1 : size(posImages, 1)
+            tempPos = posImages(ii, :);
+            dist = sum(abs(tempPos - posList), 2);
+            if find(dist < 1e-14)
+                repeatFlag = true;
+            end
+        end
+    end
 
 end

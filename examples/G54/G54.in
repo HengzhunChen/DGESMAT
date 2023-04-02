@@ -6,7 +6,6 @@ Mixing_Variable:       potential
 Mixing_StepLength:     0.005
 
 Extra_States:          40
-Temperature:           0.1
 
 SCF_Outer_MaxIter:     30
 SCF_Outer_Tolerance:   1e-6
@@ -14,15 +13,11 @@ SCF_Inner_MaxIter:     1
 SCF_Inner_Tolerance:   1e-6
 Eig_MaxIter:           10
 Eig_Tolerance:         1e-20
-Eig_Min_Tolerance:      1e-6
-
-# SVD_Basis_Tolerance:   1e-20
+Eig_Min_Tolerance:     1e-6
 SVD_Basis_Tolerance:   1e-6
 
 Pseudo_Type:           ONCV
 XC_Type:               XC_LDA_XC_TETER93
-Use_VLocal:            0
-# PW_Solver:             PPCG
 PW_Solver:             LOBPCG
 
 Ecut_Wavefunction:     40

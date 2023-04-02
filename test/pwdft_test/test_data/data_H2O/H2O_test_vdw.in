@@ -19,5 +19,7 @@ begin Atom_Red
          0.00       0.00         0.00
 end Atom_Red
 
+Ecut_Wavefunction:     100
+
 VDW_Type:   DFT-D2  # used with GGA type exchange-correlation
 XC_Type:    XC_GGA_XC_PBE
