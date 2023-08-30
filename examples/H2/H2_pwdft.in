@@ -21,7 +21,6 @@ PW_Solver:            LOBPCG
 Pseudo_Type:           ONCV
 # Pseudo_Type:           HGH
 XC_Type:               XC_LDA_XC_TETER93
-use_VLocal:            1
 
 Ecut_Wavefunction:     40
 
